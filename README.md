@@ -16,13 +16,13 @@ O sistema permite:
 
 **Fase Atual:** Proposta Submetida (Semana 1-2)
 
-|              Fase              |     tatus    | Data Prevista   |
-|--------------------------------|--------------|-----------------|
-| ✅ Proposta de Projeto        | Concluído    | 25 Mar 2026     |
-| ⏳ Levantamento de Requisitos | Em Progresso | 31 Mar - 11 Abr |
-| ⏳ Implementação              | Planeado     | 14 Abr - 30 Mai |
-| ⏳ Relatório Intercalar       | Planeado     | 6 Mai           |
-| ⏳ Relatório Final            | Planeado     | 24 Jun          |
+|   Cheek |          Fase         |     tatus    | Data Prevista   |
+|---------------------------------|--------------|-----------------|
+| ✅ |Proposta de Projeto        | Concluído    | 25 Mar 2026     |
+| ⏳ |Levantamento de Requisitos | Em Progresso | 31 Mar - 11 Abr |
+| ⏳ |Implementação              | Planeado     | 14 Abr - 30 Mai |
+| ⏳ |Relatório Intercalar       | Planeado     | 6 Mai           |
+| ⏳ |Relatório Final            | Planeado     | 24 Jun          |
 
 ## Tecnologias
 
@@ -34,3 +34,16 @@ O sistema permite:
 - **Deploy:** Docker
 
 ## Estrutura do Projeto
+sig-aldeias/
+├── docs/ # Documentação
+│ ├── requisitos/ # Documentos de requisitos
+│ ├── arquitetura/ # Diagramas e decisões
+│ ├── wireframes/ # Protótipos de interface
+│ └── relatorio/ # Relatório académico
+├── src/ # Código fonte
+│ ├── api/ # Backend FastAPI
+│ └── frontend/ # Interface web
+├── tests/ # Testes automatizados
+├── scripts/ # Scripts utilitários
+├── data/ # Dados simulados
+└── database/ # Schema e dados da BD
