@@ -34,7 +34,7 @@ O sistema permite:
 - **Deploy:** Docker
 
 ## Estrutura do Projeto
-sig-aldeias/
+'''sig-aldeias/
 ├── docs/ # Documentação
 │ ├── requisitos/ # Documentos de requisitos
 │ ├── arquitetura/ # Diagramas e decisões
@@ -47,3 +47,4 @@ sig-aldeias/
 ├── scripts/ # Scripts utilitários
 ├── data/ # Dados simulados
 └── database/ # Schema e dados da BD
+'''
