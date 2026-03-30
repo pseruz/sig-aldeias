@@ -16,13 +16,13 @@ O sistema permite:
 
 **Fase Atual:** Proposta Submetida (Semana 1-2)
 
-|   Cheek |          Fase         |     tatus    | Data Prevista   |
+| Cheek |          Fase         |     tatus    | Data Prevista   |
 |---------------------------------|--------------|-----------------|
-| ✅ |Proposta de Projeto        | Concluído    | 25 Mar 2026     |
-| ⏳ |Levantamento de Requisitos | Em Progresso | 31 Mar - 11 Abr |
-| ⏳ |Implementação              | Planeado     | 14 Abr - 30 Mai |
-| ⏳ |Relatório Intercalar       | Planeado     | 6 Mai           |
-| ⏳ |Relatório Final            | Planeado     | 24 Jun          |
+|  ✅  |Proposta de Projeto        | Concluído    | 25 Mar 2026     |
+|  ⏳  |Levantamento de Requisitos | Em Progresso | 31 Mar - 11 Abr |
+|  ⏳  |Implementação              | Planeado     | 14 Abr - 30 Mai |
+|  ⏳  |Relatório Intercalar       | Planeado     | 6 Mai           |
+|  ⏳  |Relatório Final            | Planeado     | 24 Jun          |
 
 ## Tecnologias
 
