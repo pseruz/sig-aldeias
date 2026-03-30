@@ -2,6 +2,11 @@
 
 Sistema de Informação Geográfica para Apoio à Proteção Civil em Aldeias Rurais
 
+Estudante: Pedro Cruz . 2003655
+Orientador: Pedro Pestana
+UC: Projecto de Engenharia Informática · Universidade Aberta · 2025/26
+Repositório: https://github.com/pseruz/sig-aldeias
+
 ## Descrição
 
 O SIG-Aldeias é um sistema web para gestão de informação territorial em aldeias rurais portuguesas, desenvolvido no âmbito do Projeto de Engenharia Informática da Universidade Aberta.
