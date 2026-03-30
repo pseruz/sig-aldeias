@@ -34,7 +34,7 @@ O sistema permite:
 - **Deploy:** Docker
 
 ## Estrutura do Projeto
-("
+(```
 sig-aldeias/
 ├── docs/ # Documentação
 │ ├── requisitos/ # Documentos de requisitos
@@ -48,4 +48,4 @@ sig-aldeias/
 ├── scripts/ # Scripts utilitários
 ├── data/ # Dados simulados
 └── database/ # Schema e dados da BD
-")
+)
