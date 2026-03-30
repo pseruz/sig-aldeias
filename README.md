@@ -48,4 +48,4 @@ sig-aldeias/
 ├── scripts/ # Scripts utilitários
 ├── data/ # Dados simulados
 └── database/ # Schema e dados da BD
-)
+''')
