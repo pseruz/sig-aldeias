@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SIG-Aldeias Wireframe</title>
+    <link rel="stylesheet" href="css/wireframe.css">
+</head>
+<body>
+    <div class="wireframe-container">
+        <div class="header">
+            <h1>.SIG-Aldeias - Login</h1>
+        </div>
+        
+        <div class="nav-links">
+            <a href="index.html">← Voltar</a>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="mapa.html">Mapa</a>
+        </div>
+
+        <div class="wf-section">
+            <h2>Tela de Autenticação</h2>
+            <p>Interface de login para técnicos e coordenadores da Proteção Civil.</p>
+        </div>
+
+        <div class="wf-grid">
+            <div class="wf-card">
+                <h3>Formulário de Login</h3>
+                <div class="wf-form-group">
+                    <label class="wf-label">Email Institucional</label>
+                    <input type="email" class="wf-input" placeholder="tecnico@protecaocivil.pt">
+                </div>
+                <div class="wf-form-group">
+                    <label class="wf-label">Password</label>
+                    <input type="password" class="wf-input" placeholder="••••••••">
+                </div>
+                <button class="wf-btn wf-btn--primary">Entrar</button>
+                <button class="wf-btn">Recuperar Password</button>
+            </div>
+            
+            <div class="wf-card">
+                <h3>Perfis de Utilizador</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Técnico PC:</strong> Recolhe e valida dados</li>
+                    <li><strong>Coordenador PC:</strong> Visualiza e exporta relatórios</li>
+                    <li><strong>Administrador:</strong> Gestão de utilizadores</li>
+                </ul>
+                
+                <h3 style="margin-top: 15px;">Segurança</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Autenticação JWT</li>
+                    <li>Passwords encriptadas (bcrypt)</li>
+                    <li>Bloqueio após 5 tentativas</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

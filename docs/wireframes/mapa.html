@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa - SIG-Aldeias Wireframe</title>
+    <link rel="stylesheet" href="css/wireframe.css">
+</head>
+<body>
+    <div class="wireframe-container">
+        <div class="header">
+            <h1>.SIG-Aldeias - Mapa Operacional</h1>
+        </div>
+        
+        <div class="nav-links">
+            <a href="index.html">← Voltar</a>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="registo.html">Registo</a>
+            <a href="ficha.html">Ficha Detalhada</a>
+        </div>
+
+        <div class="wf-section">
+            <h2>Visualização Geográfica Interativa</h2>
+            <p>Mapa com representação 2.5D de edifícios e filtros por critérios de vulnerabilidade.</p>
+        </div>
+
+        <div class="wf-grid">
+            <div class="wf-card">
+                <h3>🔍 Filtros e Controlos</h3>
+                <div class="wf-form-group">
+                    <label class="wf-label">Material Estrutural</label>
+                    <select class="wf-select">
+                        <option>Todos</option>
+                        <option>Betão</option>
+                        <option>Alvenaria</option>
+                        <option>madeira</option>
+                    </select>
+                </div>
+                <div class="wf-form-group">
+                    <label class="wf-label">Perfis de Risco</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <label style="display: flex; align-items: center;">
+                            <input type="checkbox" style="margin-right: 8px;"> Idosos
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="checkbox" style="margin-right: 8px;"> Crianças
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="checkbox" style="margin-right: 8px;"> Mobilidade Reduzida
+                        </label>
+                    </div>
+                </div>
+                <div class="wf-form-group">
+                    <label class="wf-label">Prioridade</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px;">
+                        <button class="wf-btn wf-btn--danger">Crítico</button>
+                        <button class="wf-btn wf-btn--warning">Médio</button>
+                        <button class="wf-btn wf-btn--success">Baixo</button>
+                    </div>
+                </div>
+                <button class="wf-btn" style="width: 100%; margin-top: 10px;">🔄 Atualizar Mapa</button>
+            </div>
+            
+            <div class="wf-card">
+                <h3>👁️ Modos de Visualização</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <button class="wf-btn">2D - Marcadores</button>
+                    <button class="wf-btn wf-btn--primary">2.5D - Blocos</button>
+                </div>
+                <div class="wf-form-group" style="margin-top: 15px;">
+                    <label class="wf-label">Camadas</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <label style="display: flex; align-items: center;">
+                            <input type="checkbox" checked style="margin-right: 8px;"> Edifícios
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="checkbox" checked style="margin-right: 8px;"> Vias
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="checkbox" style="margin-right: 8px;"> Pontos Água
+                        </label>
+                        <label style="display: flex; align-items: center;">
+                            <input type="checkbox" style="margin-right: 8px;"> Centros Evacuação
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="wf-section">
+            <h3>Mapa Principal (Placeholder)</h3>
+            <div class="map-placeholder">
+                <div style="text-align: center;">
+                    <h4>Mapa Leaflet + OpenStreetMap</h4>
+                    <p>Representação 2.5D com blocos coloridos por prioridade</p>
+                    <p>🔴 Crítico | 🟠 Médio | 🟢 Baixo</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="wf-section">
+            <h3>Legenda de Prioridades</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 10px;">
+                <div class="priority-critical">
+                    <strong>🔴 Prioridade Crítica</strong><br>
+                    <small>Estrutura Madeira + Idosos + TEE Elevado</small>
+                </div>
+                <div class="priority-medium">
+                    <strong>🟠 Prioridade Média</strong><br>
+                    <small>Alvenaria + Crianças</small>
+                </div>
+                <div class="priority-low">
+                    <strong>🟢 Prioridade Baixa</strong><br>
+                    <small>Betão, TEE Curto</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

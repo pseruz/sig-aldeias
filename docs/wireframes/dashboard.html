@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SIG-Aldeias Wireframe</title>
+    <link rel="stylesheet" href="css/wireframe.css">
+</head>
+<body>
+    <div class="wireframe-container">
+        <div class="header">
+            <h1>.SIG-Aldeias - Dashboard Operacional</h1>
+        </div>
+        
+        <div class="nav-links">
+            <a href="index.html">← Voltar</a>
+            <a href="login.html">Login</a>
+            <a href="mapa.html">Mapa</a>
+            <a href="registo.html">Registo</a>
+        </div>
+
+        <div class="wf-section">
+            <h2>Visão Geral Operacional</h2>
+            <p>Dashboard com estatísticas e alertas em tempo real para gestão territorial.</p>
+        </div>
+
+        <div class="wf-grid">
+            <div class="wf-card">
+                <h3>📊 Estatísticas Gerais</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px;">
+                    <div style="background: var(--light-gray); padding: 10px; border-radius: 4px;">
+                        <strong>142</strong><br>
+                        <small>Agregados</small>
+                    </div>
+                    <div style="background: var(--light-gray); padding: 10px; border-radius: 4px;">
+                        <strong>89</strong><br>
+                        <small>Validados</small>
+                    </div>
+                    <div style="background: var(--light-gray); padding: 10px; border-radius: 4px;">
+                        <strong>23</strong><br>
+                        <small>Pendentes</small>
+                    </div>
+                    <div style="background: var(--light-gray); padding: 10px; border-radius: 4px;">
+                        <strong>30</strong><br>
+                        <small>Rejeitados</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="wf-card">
+                <h3>🚨 Alertas Ativos</h3>
+                <div class="priority-critical">
+                    <strong>Família Silva</strong><br>
+                    <small>Solicitação de evacuação urgente - Arganil</small>
+                </div>
+                <div class="priority-medium">
+                    <strong>Rua Principal</strong><br>
+                    <small>Via obstruída por queda de árvore</small>
+                </div>
+                <div class="priority-low">
+                    <strong>Zona Norte</strong><br>
+                    <small>Atualização de dados pendente</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="wf-grid">
+            <div class="wf-card">
+                <h3>🗺️ Zonas de Risco</h3>
+                <div style="margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span>Crítico</span>
+                        <strong>14</strong>
+                    </div>
+                    <div style="background: var(--medium-gray); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="background: var(--accent-red); height: 100%; width: 25%;"></div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin: 8px 0 5px;">
+                        <span>Médio</span>
+                        <strong>22</strong>
+                    </div>
+                    <div style="background: var(--medium-gray); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="background: var(--accent-orange); height: 100%; width: 40%;"></div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin: 8px 0 5px;">
+                        <span>Baixo</span>
+                        <strong>65</strong>
+                    </div>
+                    <div style="background: var(--medium-gray); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="background: var(--accent-green); height: 100%; width: 35%;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="wf-card">
+                <h3>⚡ Ações Rápidas</h3>
+                <button class="wf-btn wf-btn--primary" style="width: 100%; margin: 5px 0;">+ Novo Registo</button>
+                <button class="wf-btn" style="width: 100%; margin: 5px 0;">Exportar Relatório</button>
+                <button class="wf-btn" style="width: 100%; margin: 5px 0;">Validar Dados Pendentes</button>
+                <button class="wf-btn wf-btn--danger" style="width: 100%; margin: 5px 0;">Alertas Emergência</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
