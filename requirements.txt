@@ -28,3 +28,7 @@ alembic==1.13.1
 
 # GIS
 shapely==2.0.2
+
+# Exportação de relatórios
+reportlab==4.0.9        # Geração de PDF
+pandas==2.1.4           # Manipulação de dados para CSV

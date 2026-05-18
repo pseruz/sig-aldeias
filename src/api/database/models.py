@@ -1,6 +1,7 @@
 # src/api/database/models.py
 import datetime
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, Enum
+from sqlalchemy.orm import declarative_base  # ✅ IMPORT OBRIGATÓRIO
 
 Base = declarative_base()
 
@@ -17,8 +18,7 @@ class Household(Base):
     __tablename__ = "households"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
-    # ✅ Temporariamente String para compatibilidade SQLite/PostgreSQL.
-    # Guarda formato WKT: "POINT(lon lat)". Migração para PostGIS é trivial depois.
+    # ✅ Location como String(WKT) para compatibilidade SQLite/PostgreSQL
     location = Column(String(255), nullable=True)
     num_people = Column(Integer, nullable=False)
     num_floors = Column(Integer, nullable=False)

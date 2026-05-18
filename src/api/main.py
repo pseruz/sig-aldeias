@@ -2,6 +2,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from src.api.routes import auth, households, validation
+from src.api.routes import auth, households, validation, reports  # ✅ Adicionar reports
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -21,6 +22,7 @@ app = FastAPI(
 app.include_router(auth.router)
 app.include_router(households.router)
 app.include_router(validation.router)
+app.include_router(reports.router)  # ✅ Incluir router de relatórios
 
 @app.get("/health")
 def health_check():
