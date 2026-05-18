@@ -1,5 +1,11 @@
 # Changelog
-
+## [0.2.1] - 2026-05-18
+### Added
+- Estrutura completa de autenticação e CRUD
+- Documentação de limitações técnicas (testes/PostGIS)
+### Known Issues
+- Testes unitários pendentes de integração com PostgreSQL real
+  
 ## [0.2.0] - 2026-04-01
 ### Added
 - Estrutura completa de pastas com .gitkeep
