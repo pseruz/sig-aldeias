@@ -1,0 +1,4 @@
+ID,Nome,Localização,Pessoas,Pisos,Material,Idosos,Crianças,Mobilidade,Status,CriadoPor,Data
+1,Família Silva,POINT(-8.12 40.23),4,2,betão,True,False,False,validado,1,2026-05-01
+2,Família Santos,POINT(-8.13 40.24),2,1,madeira,False,True,False,validado,1,2026-05-02
+3,Família Costa,POINT(-8.14 40.25),5,3,alvenaria,True,True,True,pendente,1,2026-05-03

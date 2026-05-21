@@ -1,29 +1,30 @@
 # src/api/main.py
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from src.api.routes import auth, households, validation
-from src.api.routes import auth, households, validation, reports  # ✅ Adicionar reports
+
+# ✅ Import direto dos routers (evita circular import via __init__.py)
+from src.api.routes.auth import router as auth_router
+from src.api.routes.households import router as households_router
+from src.api.routes.validation import router as validation_router
+from src.api.routes.reports import router as reports_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Lifespan vazio. A inicialização da BD é gerida por:
-    - Produção: Alembic ou scripts/init_db.py
-    - Testes: fixtures do pytest com SQLite em memória
-    """
+    """Lifespan vazio — inicialização da BD gerida externamente."""
     yield
 
 app = FastAPI(
     title="SIG-Aldeias API",
-    version="0.2.0",
+    version="0.2.1",
     lifespan=lifespan
 )
 
-app.include_router(auth.router)
-app.include_router(households.router)
-app.include_router(validation.router)
-app.include_router(reports.router)  # ✅ Incluir router de relatórios
+# ✅ Incluir routers diretamente
+app.include_router(auth_router)
+app.include_router(households_router)
+app.include_router(validation_router)
+app.include_router(reports_router)
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "version": "0.2.0"}
+    return {"status": "ok", "version": "0.2.1"}
