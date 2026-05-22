@@ -11,8 +11,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        user_id: int = payload.get("sub")
-        if user_id is None:
+        sub = payload.get("sub")
+        if sub is None:
+            raise HTTPException(status_code=401, detail="Credenciais inválidas")
+        try:
+            user_id = int(sub)
+        except (TypeError, ValueError):
             raise HTTPException(status_code=401, detail="Credenciais inválidas")
     except JWTError:
         raise HTTPException(status_code=401, detail="Credenciais inválidas")

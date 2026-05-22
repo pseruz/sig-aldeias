@@ -1,44 +1,29 @@
 # tests/conftest.py
+# IMPORTANTE: definir variáveis de ambiente ANTES de importar qualquer módulo src.api
 import os
-os.environ["TESTING"] = "true"
 
-import datetime
+os.environ["TESTING"] = "true"
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+
+import hashlib
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, Enum, Float, Text
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-TestBase = declarative_base()
+# Modelos de teste = modelos da app (mesmo Base/tabelas; location String(255) WKT)
+from src.api.database.models import Base, User as TestUser, Household as TestHousehold
 
-class TestHousehold(TestBase):
-    __tablename__ = "households"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), nullable=False)
-    location = Column(String(255), nullable=True)
-    latitude = Column(Float, nullable=False)
-    longitude = Column(Float, nullable=False)
-    num_people = Column(Integer, nullable=False)
-    num_floors = Column(Integer, nullable=False)
-    material = Column(Enum("betão", "madeira", "alvenaria", name="building_materials"), nullable=False)
-    has_elderly = Column(Boolean, default=False)
-    has_children = Column(Boolean, default=False)
-    has_mobility_issues = Column(Boolean, default=False)
-    status = Column(Enum("pendente", "validado", "rejeitado", name="validation_status"), default="pendente")
-    rejection_reason = Column(Text, nullable=True)
-    created_by = Column(Integer, nullable=False)
-    validated_by = Column(Integer, nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
-    validated_at = Column(DateTime, nullable=True)
 
-class TestUser(TestBase):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String(255), unique=True, index=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
-    name = Column(String(100), nullable=False)
-    role = Column(Enum("admin", "tecnico", "coordenador", name="user_roles"), default="tecnico")
-    created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
+def _test_password_hash(password: str) -> str:
+    """
+    Hash determinístico para testes — evita bcrypt (passlib) que falha em alguns ambientes.
+    Compatível com verify_password() em src/api/security/auth.py (prefixo test_sha256_).
+    """
+    digest = hashlib.sha256(password.encode("utf-8")).hexdigest()
+    return f"test_sha256_{digest}"
+
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(
@@ -48,40 +33,47 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 @pytest.fixture(scope="function")
 def db_session():
-    TestBase.metadata.create_all(bind=engine)
+    """Sessão SQLite em memória; recria esquema por teste (isolamento)."""
+    Base.metadata.create_all(bind=engine)
     session = TestingSessionLocal()
     try:
         yield session
     finally:
         session.close()
-        TestBase.metadata.drop_all(bind=engine)
+        Base.metadata.drop_all(bind=engine)
+
 
 @pytest.fixture(scope="function")
 def client(db_session):
+    """
+    TestClient com override de get_db — a API nunca abre ligação PostgreSQL nos testes.
+    """
     from src.api.main import app
     from src.api.database.connection import get_db
-    
+
     def override_get_db():
         try:
             yield db_session
         finally:
             pass
-    
+
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
 
+
 @pytest.fixture
 def test_user(db_session):
-    from src.api.security.auth import get_password_hash
+    """Utilizador técnico sintético para login OAuth2 (Form Data)."""
     user = TestUser(
         email="test@pc.pt",
-        password_hash=get_password_hash("password123"),
+        password_hash=_test_password_hash("password123"),
         name="Técnico Teste",
-        role="tecnico"
+        role="tecnico",
     )
     db_session.add(user)
     db_session.commit()
