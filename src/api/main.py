@@ -10,7 +10,10 @@ from src.api.routes.reports import router as reports_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan vazio — inicialização da BD gerida externamente."""
+    """Garante esquema e pasta SQLite em desenvolvimento local."""
+    from src.api.database.connection import init_database
+
+    init_database()
     yield
 
 app = FastAPI(

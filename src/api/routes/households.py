@@ -1,13 +1,24 @@
 # src/api/routes/households.py
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from src.api.database.connection import get_db
 from src.api.database.models import Household, User, AccessLog
-from src.api.schemas.household import HouseholdCreate, HouseholdUpdate, HouseholdResponse
+from src.api.schemas.household import (
+    HouseholdCreate,
+    HouseholdUpdate,
+    HouseholdResponse,
+    _coords_from_wkt,
+)
 from src.api.dependencies import get_current_user
 from typing import List, Optional
 
 router = APIRouter(prefix="/households", tags=["households"])
+
+
+def _location_wkt(latitude: float, longitude: float) -> str:
+    """WKT POINT(lon lat) — armazenado em models.Household.location (String 255)."""
+    return f"POINT({longitude} {latitude})"
 
 def _apply_filters(query, material: Optional[str], has_elderly: Optional[bool], 
                    has_children: Optional[bool], status: Optional[str]):
@@ -28,21 +39,27 @@ def _apply_filters(query, material: Optional[str], has_elderly: Optional[bool],
 
 @router.post("/", response_model=HouseholdResponse, status_code=201)
 def create_household(household: HouseholdCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    # Guarda coordenadas em formato WKT padrão. Compatível com SQLite e PostgreSQL.
-    location_wkt = f"POINT({household.longitude} {household.latitude})"
-    
+    location_wkt = _location_wkt(household.latitude, household.longitude)
     new_household = Household(
         **household.model_dump(exclude={"latitude", "longitude"}),
         location=location_wkt,
-        created_by=user.id
+        created_by=user.id,
     )
-    db.add(new_household)
-    db.commit()
-    db.refresh(new_household)
-    
-    log = AccessLog(user_id=user.id, household_id=new_household.id, action="CREATE", ip_address="127.0.0.1")
-    db.add(log)
-    db.commit()
+    try:
+        db.add(new_household)
+        db.commit()
+        db.refresh(new_household)
+        log = AccessLog(
+            user_id=user.id,
+            household_id=new_household.id,
+            action="CREATE",
+            ip_address="127.0.0.1",
+        )
+        db.add(log)
+        db.commit()
+    except SQLAlchemyError:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Erro ao criar agregado")
     return new_household
 
 
@@ -80,15 +97,19 @@ def update_household(household_id: int, updates: HouseholdUpdate, db: Session = 
     
     update_data = updates.model_dump(exclude_unset=True)
     for field, value in update_data.items():
-        if field not in ["latitude", "longitude"]:
+        if field not in ("latitude", "longitude"):
             setattr(household, field, value)
-            
-    # Atualizar localização WKT se coordenadas forem enviadas
+
     if "latitude" in update_data or "longitude" in update_data:
-        lat = update_data.get("latitude", 0.0)
-        lon = update_data.get("longitude", 0.0)
-        household.location = f"POINT({lon} {lat})"
-        
-    db.commit()
-    db.refresh(household)
+        cur_lat, cur_lon = _coords_from_wkt(household.location)
+        lat = update_data.get("latitude", cur_lat)
+        lon = update_data.get("longitude", cur_lon)
+        household.location = _location_wkt(lat, lon)
+
+    try:
+        db.commit()
+        db.refresh(household)
+    except SQLAlchemyError:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Erro ao atualizar agregado")
     return household

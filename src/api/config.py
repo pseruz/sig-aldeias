@@ -1,10 +1,21 @@
 # src/api/config.py
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
-from typing import Optional
+
+_SQLITE_DEV_DEFAULT = "sqlite:///./data/sig_aldeias.db"
+
 
 class Settings(BaseSettings):
-    # Database
-    DATABASE_URL: str = "postgresql://sig_user:sig_pass@localhost:5432/sig_aldeias"
+    # Database — SQLite local por defeito; PostgreSQL apenas se definido no .env
+    DATABASE_URL: str = _SQLITE_DEV_DEFAULT
+
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def sqlite_fallback_if_empty(cls, value: object) -> str:
+        """Usa SQLite de dev se a variável não existir ou estiver vazia no .env."""
+        if value is None or (isinstance(value, str) and not value.strip()):
+            return _SQLITE_DEV_DEFAULT
+        return str(value)
     
     # Security
     SECRET_KEY: str = "alterar_para_chave_segura_em_producao"
