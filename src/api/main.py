@@ -50,11 +50,35 @@ def health_check():
     return {"status": "ok", "version": "0.2.1"}
 
 
+@app.get("/registo", response_class=HTMLResponse)
+async def registo_page(request: Request):
+    return templates.TemplateResponse(
+        "registo.html",
+        {"request": request, "title": "Registo de Agregado - SIG-Aldeias"},
+    )
+
+
 @app.get("/map", response_class=HTMLResponse)
-async def map_page(request: Request):
+async def map_page(request: Request, mode: str = "field"):
     return templates.TemplateResponse(
         "map.html",
-        {"request": request, "title": "Mapa - SIG-Aldeias"},
+        {
+            "request": request,
+            "title": "Mapa de Campo - SIG-Aldeias",
+            "mode": mode,
+        },
+    )
+
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard_page(request: Request):
+    return templates.TemplateResponse(
+        "map.html",
+        {
+            "request": request,
+            "title": "Dashboard Operacional - SIG-Aldeias",
+            "mode": "command",
+        },
     )
 
 
@@ -62,5 +86,9 @@ async def map_page(request: Request):
 async def home(request: Request):
     return templates.TemplateResponse(
         "map.html",
-        {"request": request, "title": "SIG-Aldeias"},
+        {
+            "request": request,
+            "title": "Dashboard Operacional - SIG-Aldeias",
+            "mode": "command",
+        },
     )

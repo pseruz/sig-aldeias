@@ -473,3 +473,143 @@ body.pc-operational main.container-fluid {
     /* Em desktop o painel direito já está sempre visível */
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Modo Campo / Comando + Registo                                               */
+/* -------------------------------------------------------------------------- */
+.pc-mode-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 107, 0, 0.12);
+  border-bottom: 1px solid var(--pc-border);
+}
+
+.pc-mode-banner--field {
+  background: rgba(13, 110, 253, 0.15);
+}
+
+.pc-auth-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  display: inline-block;
+}
+
+.pc-auth-badge--ok {
+  background: rgba(40, 167, 69, 0.25);
+  color: #8fd9a0;
+}
+
+.pc-auth-badge--warn {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffe08a;
+}
+
+.pc-legend-poly {
+  display: inline-block;
+  width: 1rem;
+  height: 0.75rem;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+  opacity: 0.85;
+}
+
+.pc-legend-poly--fire {
+  background: #dc3545;
+}
+
+.pc-legend-poly--flood {
+  background: #0d6efd;
+}
+
+body.pc-registo-page {
+  background-color: var(--pc-bg-main);
+  overflow-y: auto;
+}
+
+body.pc-registo-page main.container-fluid {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  padding: 1rem;
+}
+
+.pc-registo-wrap {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.pc-registo-header {
+  padding: 1rem;
+}
+
+.pc-registo-form {
+  padding: 1.25rem;
+}
+
+.pc-text-muted {
+  color: var(--pc-text-muted);
+}
+
+.pc-input,
+.pc-registo-form .form-control {
+  background-color: rgba(0, 0, 0, 0.25);
+  border-color: var(--pc-border);
+  color: var(--pc-text);
+  min-height: var(--pc-touch-min);
+}
+
+.pc-input:focus,
+.pc-registo-form .form-control:focus {
+  background-color: rgba(0, 0, 0, 0.35);
+  border-color: var(--pc-accent);
+  color: var(--pc-text);
+  box-shadow: 0 0 0 0.2rem rgba(255, 107, 0, 0.25);
+}
+
+.pc-btn-group-tactile .btn {
+  min-height: var(--pc-touch-min);
+}
+
+.pc-check-tactile .form-check-input {
+  width: 1.35em;
+  height: 1.35em;
+  margin-top: 0.15em;
+}
+
+.pc-check-tactile .form-check-label {
+  font-size: 1.05rem;
+  padding-left: 0.25rem;
+}
+
+.pc-touch-btn {
+  min-height: var(--pc-touch-min);
+}
+
+.pc-gps-status {
+  color: var(--pc-text-muted);
+}
+
+#map-page-root {
+  flex-wrap: wrap;
+  height: 100%;
+}
+
+#map-page-root > .pc-map-column {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+@media (min-width: 768px) {
+  #map-page-root > .pc-mode-banner {
+    flex: 0 0 100%;
+  }
+  #map-page-root > .pc-panel-left,
+  #map-page-root > .pc-map-column,
+  #map-page-root > .pc-panel-right {
+    height: calc(100% - 42px);
+  }
+}

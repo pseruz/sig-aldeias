@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Mapa Operacional - SIG-Aldeias{% endblock %}
+{% block title %}{{ title | default("Dashboard Operacional - SIG-Aldeias") }}{% endblock %}
 {% block body_class %}pc-operational{% endblock %}
 {% block main_class %}p-0{% endblock %}
 
@@ -8,16 +8,43 @@
 {% endblock %}
 
 {% block content %}
-{# Toggles CSS-only para bottom sheets em mobile (sem alterar map-logic.js) #}
 <input type="checkbox" id="pc-toggle-filters" class="pc-sheet-input" aria-hidden="true" tabindex="-1">
 <input type="checkbox" id="pc-toggle-details" class="pc-sheet-input" aria-hidden="true" tabindex="-1">
 <label for="pc-toggle-filters" class="pc-sheet-backdrop pc-sheet-backdrop--filters d-md-none" aria-hidden="true"></label>
 <label for="pc-toggle-details" class="pc-sheet-backdrop pc-sheet-backdrop--details d-md-none" aria-hidden="true"></label>
 
-<div class="pc-map-layout row g-0 flex-grow-1">
-    {# --- Coluna esquerda: filtros (desktop/tablet) --- #}
+<div id="map-page-root" class="pc-map-layout row g-0 flex-grow-1" data-pc-mode="{{ mode | default('command') }}">
+
+    {% if mode == 'field' %}
+    <div class="pc-mode-banner pc-mode-banner--field col-12">
+        <span class="pc-text">Modo Campo</span>
+        <a href="/registo" class="btn btn-sm btn-outline-light">+ Novo registo</a>
+        <a href="/dashboard" class="btn btn-sm pc-btn-critical">Central de Comando</a>
+    </div>
+    {% else %}
+    <div class="pc-mode-banner pc-mode-banner--command col-12 d-none d-md-flex">
+        <span class="pc-text">Central de Comando — Validação Operacional</span>
+        <a href="/registo" class="btn btn-sm btn-outline-light">Registo em campo</a>
+    </div>
+    {% endif %}
+
+    <div id="map-submitted-alert" class="alert alert-success d-none col-12 mx-2 mt-2" role="alert">
+        Agregado submetido ✅ — aguarda validação na central.
+    </div>
+
     <aside class="col-lg-2 pc-panel pc-panel-left d-none d-md-flex flex-column" id="panel-filters" aria-label="Filtros do mapa">
         <p class="pc-panel__title pc-text mb-0">Filtros de Visualização</p>
+        <div id="auth-section" class="pc-auth-badge mb-2" role="status"></div>
+
+        <div class="mb-3">
+            <label class="form-label" for="filter-status">Estado</label>
+            <select class="form-select form-select-sm" id="filter-status" name="status">
+                <option value="">Todos</option>
+                <option value="pendente">Pendente</option>
+                <option value="validado">Validado</option>
+                <option value="rejeitado">Rejeitado</option>
+            </select>
+        </div>
 
         <div class="mb-3">
             <label class="form-label" for="filter-material">Material Estrutural</label>
@@ -41,10 +68,19 @@
             <input class="form-check-input" type="checkbox" id="filter-mobility" name="has_mobility_issues">
             <label class="form-check-label" for="filter-mobility">Mobilidade reduzida</label>
         </div>
-        <p class="pc-panel__title pc-text mt-2 mb-1">Camadas Operacionais</p>
+
+        <p class="pc-panel__title pc-text mt-2 mb-1">Informação Operacional (Tempo Real)</p>
+        <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="toggle-fire" name="fire_zones">
+            <label class="form-check-label" for="toggle-fire">🔥 Manchas de Incêndio</label>
+        </div>
+        <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="toggle-flood" name="flood_zones">
+            <label class="form-check-label" for="toggle-flood">🌊 Zonas de Cheias</label>
+        </div>
         <div class="form-check form-switch mb-2">
             <input class="form-check-input" type="checkbox" id="toggle-evacuation" name="evacuation_routes">
-            <label class="form-check-label" for="toggle-evacuation">Rotas de Evacuação Ativas</label>
+            <label class="form-check-label" for="toggle-evacuation">🛣️ Rotas de Evacuação</label>
         </div>
         <small class="pc-layer-hint d-block mb-2">Rotas calculadas para evacuação prioritária</small>
         <div class="form-check form-switch mb-2">
@@ -57,48 +93,40 @@
             <label class="form-check-label" for="filter-trees">Zonas com árvores</label>
         </div>
 
-        <button type="button" class="btn pc-btn-critical w-100 mt-auto" id="btn-refresh-map">
-            Atualizar mapa
-        </button>
+        <button type="button" class="btn pc-btn-critical w-100" id="btn-refresh-map">Atualizar mapa</button>
+        <button type="button" class="btn btn-outline-light w-100 mt-2 d-none" id="btn-load-pending">Ver pendentes</button>
 
         <div class="mt-3">
             <p class="pc-panel__title pc-text">Legenda</p>
-            <div class="pc-legend-item pc-legend-item--critical pc-text">Crítico</div>
-            <div class="pc-legend-item pc-legend-item--medium pc-text">Médio</div>
-            <div class="pc-legend-item pc-legend-item--low pc-text">Baixo</div>
+            <div class="pc-legend-item pc-legend-item--critical pc-text">Pendente</div>
+            <div class="pc-legend-item pc-legend-item--low pc-text">Validado</div>
+            <div class="pc-legend-item pc-text">Rejeitado</div>
             <p class="pc-panel__title pc-text mt-3 mb-1">Camadas no mapa</p>
+            <div class="pc-legend-item pc-text"><span class="pc-legend-poly pc-legend-poly--fire"></span> Incêndio</div>
+            <div class="pc-legend-item pc-text"><span class="pc-legend-poly pc-legend-poly--flood"></span> Cheias</div>
             <div class="pc-legend-item pc-text"><span class="pc-legend-line pc-legend-line--route"></span> Rota evacuação</div>
             <div class="pc-legend-item pc-text"><span class="pc-legend-dot pc-risk-high">●</span> Alto risco (100 m)</div>
             <div class="pc-legend-item pc-text"><span class="pc-legend-dot pc-risk-medium">●</span> Médio risco (50 m)</div>
         </div>
     </aside>
 
-    {# --- Coluna central: mapa Leaflet --- #}
     <section class="col-12 col-lg-8 pc-map-column position-relative p-0" aria-label="Mapa operacional">
         <div id="map-container" role="application" aria-label="Mapa Leaflet SIG-Aldeias"></div>
-
         <label for="pc-toggle-filters" class="pc-fab pc-fab-filters d-md-none" title="Filtros" aria-label="Abrir filtros">
             <span aria-hidden="true">🔽</span>
         </label>
-        <label for="pc-toggle-details" class="pc-fab pc-fab-details d-md-none" title="Detalhes" aria-label="Abrir detalhes">
+        <label for="pc-toggle-details" class="pc-fab pc-fab-details d-md-none" title="Validação" aria-label="Abrir validação">
             <span aria-hidden="true">📋</span>
         </label>
     </section>
 
-    {# --- Coluna direita: detalhe agregado (drawer IDs para map-logic.js) --- #}
-    <aside class="col-lg-2 pc-panel pc-panel-right ui-panel panel-right d-none d-md-flex flex-column" id="panel-details" aria-label="Detalhe do agregado">
-        <p class="pc-panel__title pc-text mb-0">Detalhe Selecionado</p>
-
-        <div class="pc-alert-card pc-alert-card--critical pc-text" role="button" tabindex="0"
-             onclick="abrirDetalhe('Família Silva')" onkeydown="if(event.key==='Enter')abrirDetalhe('Família Silva')">
-            <strong>Família Silva</strong>
-            <small class="d-block text-muted">4 pessoas · 2 idosos · Evacuação urgente</small>
-        </div>
+    <aside class="col-lg-2 pc-panel pc-panel-right ui-panel panel-right d-none d-md-flex flex-column" id="panel-details" aria-label="Validação de dados técnicos">
+        <p class="pc-panel__title pc-text mb-0">Validação de Dados Técnicos</p>
 
         <div id="drawer">
-            <h2 id="drawer-title" class="pc-text h6">Selecione um agregado no mapa</h2>
+            <h2 id="drawer-title" class="pc-text h6">Selecione um agregado pendente</h2>
             <div id="drawer-content">
-                <p class="mb-0">Os dados técnicos e o plano de emergência aparecem aqui após seleção.</p>
+                <p class="mb-0">Clique num marcador com estado <strong>pendente</strong> para validar ou rejeitar.</p>
             </div>
             <button type="button" class="btn btn-outline-light w-100 mt-2" id="btn-close-drawer" onclick="fecharDrawer()">
                 Fechar painel
@@ -106,15 +134,34 @@
         </div>
     </aside>
 </div>
+
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content pc-panel">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title pc-text" id="rejectModalLabel">Rejeitar agregado</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label pc-text" for="reject-reason">Justificação (mín. 5 caracteres)</label>
+                <textarea class="form-control pc-input" id="reject-reason" rows="3" minlength="5" required></textarea>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn pc-btn-critical" id="btn-reject-confirm">Confirmar rejeição</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-    /** Token JWT (mesmo padrão de reports.html) — pronto para chamadas API futuras */
     function getAuthHeaders() {
         const token = localStorage.getItem('access_token');
         return token ? { 'Authorization': 'Bearer ' + token } : {};
     }
+    window.PC_MAP_MODE = document.getElementById('map-page-root')?.dataset.pcMode || 'command';
 </script>
 <script src="{{ url_for('static', path='/js/map-logic.js') }}"></script>
 {% endblock %}

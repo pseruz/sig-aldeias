@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Registo de Agregado - SIG-Aldeias{% endblock %}
+{% block body_class %}pc-operational pc-registo-page{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="pc-registo-wrap">
+    <header class="pc-registo-header pc-panel mb-3">
+        <h1 class="pc-text h4 mb-1">Registo de Agregado</h1>
+        <p class="pc-text-muted mb-0 small">Fluxo de campo — técnico no terreno</p>
+        <div id="auth-section" class="pc-auth-badge mt-2" role="status" aria-live="polite"></div>
+    </header>
+
+    <form id="registo-form" class="pc-registo-form pc-panel" novalidate>
+        <div class="mb-3">
+            <label class="form-label pc-text" for="reg-name">Nome do agregado / habitação</label>
+            <input type="text" class="form-control form-control-lg pc-input" id="reg-name" name="name"
+                   required minlength="2" maxlength="100" placeholder="Ex: Família Costa">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label pc-text" for="reg-people">Nº de pessoas</label>
+            <input type="number" class="form-control form-control-lg pc-input" id="reg-people" name="num_people"
+                   required min="1" max="20" value="4">
+        </div>
+
+        <div class="mb-3">
+            <span class="form-label pc-text d-block">Nº de pisos</span>
+            <div class="btn-group w-100 pc-btn-group-tactile" role="group" aria-label="Número de pisos">
+                <input type="radio" class="btn-check" name="num_floors" id="floors-1" value="1" checked>
+                <label class="btn btn-outline-light btn-lg" for="floors-1">1</label>
+                <input type="radio" class="btn-check" name="num_floors" id="floors-2" value="2">
+                <label class="btn btn-outline-light btn-lg" for="floors-2">2</label>
+                <input type="radio" class="btn-check" name="num_floors" id="floors-3" value="3">
+                <label class="btn btn-outline-light btn-lg" for="floors-3">3+</label>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <span class="form-label pc-text d-block">Tipo de construção</span>
+            <div class="btn-group w-100 pc-btn-group-tactile" role="group" aria-label="Material">
+                <input type="radio" class="btn-check" name="material" id="mat-madeira" value="madeira">
+                <label class="btn btn-outline-light btn-lg" for="mat-madeira">Madeira</label>
+                <input type="radio" class="btn-check" name="material" id="mat-alvenaria" value="alvenaria" checked>
+                <label class="btn btn-outline-light btn-lg" for="mat-alvenaria">Alvenaria</label>
+                <input type="radio" class="btn-check" name="material" id="mat-betao" value="betão">
+                <label class="btn btn-outline-light btn-lg" for="mat-betao">Betão</label>
+            </div>
+        </div>
+
+        <div class="mb-3 pc-check-tactile">
+            <div class="form-check form-check-lg mb-2">
+                <input class="form-check-input" type="checkbox" id="reg-elderly" name="has_elderly">
+                <label class="form-check-label pc-text" for="reg-elderly">👵 Idosos</label>
+            </div>
+            <div class="form-check form-check-lg mb-2">
+                <input class="form-check-input" type="checkbox" id="reg-children" name="has_children">
+                <label class="form-check-label pc-text" for="reg-children">👶 Crianças</label>
+            </div>
+            <div class="form-check form-check-lg">
+                <input class="form-check-input" type="checkbox" id="reg-mobility" name="has_mobility_issues">
+                <label class="form-check-label pc-text" for="reg-mobility">♿ Mobilidade reduzida</label>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <button type="button" class="btn btn-outline-light btn-lg w-100 pc-touch-btn" id="btn-gps">
+                📍 Capturar Posição GPS
+            </button>
+            <input type="hidden" id="reg-latitude" name="latitude">
+            <input type="hidden" id="reg-longitude" name="longitude">
+            <p class="pc-gps-status small mt-2 mb-0" id="gps-status">Coordenadas ainda não capturadas.</p>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label pc-text" for="reg-notes">Observações</label>
+            <textarea class="form-control pc-input" id="reg-notes" name="observations" rows="3"
+                      placeholder="Notas de campo (armazenadas localmente até integração futura)"></textarea>
+        </div>
+
+        <div id="registo-msg" class="pc-validate-msg mb-2" role="alert" aria-live="polite"></div>
+
+        <button type="submit" class="btn pc-btn-critical btn-lg w-100 pc-touch-btn" id="btn-submit-registo">
+            💾 Submeter para Validação
+        </button>
+
+        <a href="/dashboard" class="btn btn-outline-light w-100 mt-2 pc-touch-btn">Central de Comando</a>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function getAuthHeaders() {
+        const token = localStorage.getItem('access_token');
+        return token ? { 'Authorization': 'Bearer ' + token } : {};
+    }
+</script>
+<script src="{{ url_for('static', path='/js/registo-logic.js') }}"></script>
+{% endblock %}
