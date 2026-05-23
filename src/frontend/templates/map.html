@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Mapa Operacional - SIG-Aldeias{% endblock %}
+{% block body_class %}pc-operational{% endblock %}
+{% block main_class %}p-0{% endblock %}
+
+{% block content %}
+{# Toggles CSS-only para bottom sheets em mobile (sem alterar map-logic.js) #}
+<input type="checkbox" id="pc-toggle-filters" class="pc-sheet-input" aria-hidden="true" tabindex="-1">
+<input type="checkbox" id="pc-toggle-details" class="pc-sheet-input" aria-hidden="true" tabindex="-1">
+<label for="pc-toggle-filters" class="pc-sheet-backdrop pc-sheet-backdrop--filters d-md-none" aria-hidden="true"></label>
+<label for="pc-toggle-details" class="pc-sheet-backdrop pc-sheet-backdrop--details d-md-none" aria-hidden="true"></label>
+
+<div class="pc-map-layout row g-0 flex-grow-1">
+    {# --- Coluna esquerda: filtros (desktop/tablet) --- #}
+    <aside class="col-lg-2 pc-panel pc-panel-left d-none d-md-flex flex-column" id="panel-filters" aria-label="Filtros do mapa">
+        <p class="pc-panel__title pc-text mb-0">Filtros de Visualização</p>
+
+        <div class="mb-3">
+            <label class="form-label" for="filter-material">Material Estrutural</label>
+            <select class="form-select form-select-sm" id="filter-material" name="material">
+                <option value="">Todos</option>
+                <option value="betão">Betão</option>
+                <option value="alvenaria">Alvenaria</option>
+                <option value="madeira">Madeira</option>
+            </select>
+        </div>
+
+        <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="filter-elderly" name="has_elderly">
+            <label class="form-check-label" for="filter-elderly">Com idosos</label>
+        </div>
+        <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="filter-children" name="has_children">
+            <label class="form-check-label" for="filter-children">Com crianças</label>
+        </div>
+        <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="filter-mobility" name="has_mobility_issues">
+            <label class="form-check-label" for="filter-mobility">Mobilidade reduzida</label>
+        </div>
+        <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="filter-routes" name="evacuation_routes">
+            <label class="form-check-label" for="filter-routes">Rotas de evacuação</label>
+        </div>
+        <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="filter-trees" name="tree_zones">
+            <label class="form-check-label" for="filter-trees">Zonas com árvores</label>
+        </div>
+
+        <button type="button" class="btn pc-btn-critical w-100 mt-auto" id="btn-refresh-map">
+            Atualizar mapa
+        </button>
+
+        <div class="mt-3">
+            <p class="pc-panel__title pc-text">Legenda</p>
+            <div class="pc-legend-item pc-legend-item--critical pc-text">Crítico</div>
+            <div class="pc-legend-item pc-legend-item--medium pc-text">Médio</div>
+            <div class="pc-legend-item pc-legend-item--low pc-text">Baixo</div>
+        </div>
+    </aside>
+
+    {# --- Coluna central: mapa Leaflet --- #}
+    <section class="col-12 col-lg-8 pc-map-column position-relative p-0" aria-label="Mapa operacional">
+        <div id="map-container" role="application" aria-label="Mapa Leaflet SIG-Aldeias"></div>
+
+        <label for="pc-toggle-filters" class="pc-fab pc-fab-filters d-md-none" title="Filtros" aria-label="Abrir filtros">
+            <span aria-hidden="true">🔽</span>
+        </label>
+        <label for="pc-toggle-details" class="pc-fab pc-fab-details d-md-none" title="Detalhes" aria-label="Abrir detalhes">
+            <span aria-hidden="true">📋</span>
+        </label>
+    </section>
+
+    {# --- Coluna direita: detalhe agregado (drawer IDs para map-logic.js) --- #}
+    <aside class="col-lg-2 pc-panel pc-panel-right ui-panel panel-right d-none d-md-flex flex-column" id="panel-details" aria-label="Detalhe do agregado">
+        <p class="pc-panel__title pc-text mb-0">Detalhe Selecionado</p>
+
+        <div class="pc-alert-card pc-alert-card--critical pc-text" role="button" tabindex="0"
+             onclick="abrirDetalhe('Família Silva')" onkeydown="if(event.key==='Enter')abrirDetalhe('Família Silva')">
+            <strong>Família Silva</strong>
+            <small class="d-block text-muted">4 pessoas · 2 idosos · Evacuação urgente</small>
+        </div>
+
+        <div id="drawer">
+            <h2 id="drawer-title" class="pc-text h6">Selecione um agregado no mapa</h2>
+            <div id="drawer-content">
+                <p class="mb-0">Os dados técnicos e o plano de emergência aparecem aqui após seleção.</p>
+            </div>
+            <button type="button" class="btn pc-btn-critical w-100" onclick="fecharDrawer()">
+                Validar dados técnicos
+            </button>
+        </div>
+    </aside>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    /** Token JWT (mesmo padrão de reports.html) — pronto para chamadas API futuras */
+    function getAuthHeaders() {
+        const token = localStorage.getItem('access_token');
+        return token ? { 'Authorization': 'Bearer ' + token } : {};
+    }
+</script>
+<script src="{{ url_for('static', path='/js/map-logic.js') }}"></script>
+{% endblock %}

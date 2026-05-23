@@ -1,0 +1,385 @@
+/**
+ * SIG-Aldeias — Proteção Civil Dark Mode (Fase 2.2-A)
+ * Paleta: #121824 | #FF6B00 | #F8F9FA
+ */
+
+:root {
+  --pc-bg-panel: #121824;
+  --pc-bg-main: #0d1117;
+  --pc-accent: #ff6b00;
+  --pc-text: #f8f9fa;
+  --pc-text-muted: #adb5bd;
+  --pc-border: rgba(248, 249, 250, 0.12);
+  --pc-nav-height: 56px;
+  --pc-sheet-height: 60vh;
+  --pc-touch-min: 44px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Utilitários Proteção Civil                                                   */
+/* -------------------------------------------------------------------------- */
+.pc-text {
+  color: var(--pc-text);
+}
+
+.pc-panel {
+  background-color: var(--pc-bg-panel);
+  color: var(--pc-text);
+  border: 1px solid var(--pc-border);
+  border-radius: 0.5rem;
+}
+
+.pc-btn-critical {
+  background-color: var(--pc-accent);
+  border-color: var(--pc-accent);
+  color: #1a1a1a;
+  font-weight: 600;
+  min-height: var(--pc-touch-min);
+}
+
+.pc-btn-critical:hover,
+.pc-btn-critical:focus {
+  background-color: #e65f00;
+  border-color: #e65f00;
+  color: #1a1a1a;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Página operacional (mapa)                                                    */
+/* -------------------------------------------------------------------------- */
+body.pc-operational {
+  background-color: var(--pc-bg-main);
+  color: var(--pc-text);
+  overflow: hidden;
+}
+
+body.pc-operational .navbar {
+  background-color: var(--pc-bg-panel) !important;
+  border-bottom: 1px solid var(--pc-border);
+  min-height: var(--pc-nav-height);
+}
+
+body.pc-operational .navbar-brand,
+body.pc-operational .nav-link,
+body.pc-operational .navbar-text {
+  color: var(--pc-text) !important;
+}
+
+body.pc-operational main.container-fluid {
+  height: calc(100vh - var(--pc-nav-height));
+  max-height: calc(100vh - var(--pc-nav-height));
+  overflow: hidden;
+}
+
+.pc-map-layout {
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+}
+
+/* Colunas laterais — scroll interno */
+.pc-panel-left,
+.pc-panel-right {
+  height: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1rem;
+  gap: 0.75rem;
+  border-radius: 0;
+  border-top: none;
+  border-bottom: none;
+}
+
+.pc-panel-left {
+  border-left: none;
+}
+
+.pc-panel-right {
+  border-right: none;
+}
+
+.pc-panel__title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pc-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.pc-panel .form-label,
+.pc-panel .form-check-label {
+  color: var(--pc-text);
+  font-size: 0.9rem;
+}
+
+.pc-panel .form-select {
+  background-color: rgba(0, 0, 0, 0.25);
+  border-color: var(--pc-border);
+  color: var(--pc-text);
+  min-height: var(--pc-touch-min);
+}
+
+.pc-panel .form-check-input {
+  width: 2.5em;
+  height: 1.25em;
+  cursor: pointer;
+}
+
+.pc-panel .form-check-input:checked {
+  background-color: var(--pc-accent);
+  border-color: var(--pc-accent);
+}
+
+.pc-panel .form-switch .form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(255, 107, 0, 0.35);
+}
+
+/* Legenda de prioridades */
+.pc-legend-item {
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.35rem;
+  font-size: 0.8rem;
+  margin-bottom: 0.35rem;
+}
+
+.pc-legend-item--critical {
+  border-left: 4px solid #d90429;
+  background: rgba(217, 4, 41, 0.15);
+}
+
+.pc-legend-item--medium {
+  border-left: 4px solid var(--pc-accent);
+  background: rgba(255, 107, 0, 0.12);
+}
+
+.pc-legend-item--low {
+  border-left: 4px solid #2ec4b6;
+  background: rgba(46, 196, 182, 0.12);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Coluna central — mapa Leaflet                                                */
+/* -------------------------------------------------------------------------- */
+.pc-map-column {
+  height: 100%;
+  min-height: 0;
+  position: relative;
+  background: #1a2332;
+}
+
+#map-container {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  z-index: 1;
+}
+
+.pc-map-column .leaflet-container {
+  background: #1a2332;
+  font-family: inherit;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Painel detalhes / drawer (IDs preservados para map-logic.js)                 */
+/* -------------------------------------------------------------------------- */
+#drawer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 0.75rem;
+}
+
+#drawer-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--pc-text);
+  margin: 0;
+}
+
+#drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  color: var(--pc-text-muted);
+}
+
+#drawer.open #drawer-content {
+  color: var(--pc-text);
+}
+
+.pc-alert-card {
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.35rem;
+  border: 1px solid var(--pc-border);
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  min-height: var(--pc-touch-min);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.pc-alert-card:hover,
+.pc-alert-card:focus {
+  border-color: var(--pc-accent);
+  outline: none;
+}
+
+.pc-alert-card--critical {
+  border-color: #d90429;
+  background: rgba(217, 4, 41, 0.2);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Mobile: mapa fullscreen + FABs + bottom sheets (CSS puro)                    */
+/* -------------------------------------------------------------------------- */
+.pc-sheet-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+.pc-fab {
+  position: fixed;
+  right: 1rem;
+  z-index: 1100;
+  width: var(--pc-touch-min);
+  height: var(--pc-touch-min);
+  min-width: var(--pc-touch-min);
+  min-height: var(--pc-touch-min);
+  border-radius: 50%;
+  background-color: var(--pc-accent);
+  color: #1a1a1a;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  cursor: pointer;
+  margin: 0;
+}
+
+.pc-fab-filters {
+  bottom: 5.5rem;
+}
+
+.pc-fab-details {
+  bottom: 1rem;
+}
+
+.pc-sheet-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1040;
+  cursor: pointer;
+}
+
+@media (max-width: 767px) {
+  body.pc-operational main.container-fluid {
+    height: 100vh;
+    max-height: 100vh;
+  }
+
+  body.pc-operational .navbar {
+    display: none;
+  }
+
+  .pc-map-layout {
+    height: 100vh;
+  }
+
+  /* Painéis fora do fluxo da grelha — mapa ocupa 100% */
+  .pc-map-layout > .pc-panel-left,
+  .pc-map-layout > .pc-panel-right {
+    flex: 0 0 0 !important;
+    max-width: 0 !important;
+    padding: 0;
+    border: none;
+    overflow: visible;
+  }
+
+  .pc-map-column {
+    flex: 0 0 100%;
+    max-width: 100%;
+    height: 100vh;
+  }
+
+  #map-container {
+    min-height: 100vh;
+  }
+
+  /* Painéis laterais → bottom sheets */
+  .pc-panel-left,
+  .pc-panel-right {
+    display: flex !important;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    height: var(--pc-sheet-height);
+    max-height: var(--pc-sheet-height);
+    z-index: 1050;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    border-radius: 0.75rem 0.75rem 0 0;
+    border: 1px solid var(--pc-border);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  #pc-toggle-filters:checked ~ .pc-map-layout .pc-panel-left {
+    transform: translateY(0);
+  }
+
+  #pc-toggle-details:checked ~ .pc-map-layout .pc-panel-right {
+    transform: translateY(0);
+  }
+
+  #pc-toggle-filters:checked ~ label.pc-sheet-backdrop--filters,
+  #pc-toggle-details:checked ~ label.pc-sheet-backdrop--details {
+    display: block;
+  }
+
+  /* Sobrepõe Bootstrap .d-none nos painéis quando o sheet está ativo */
+  #pc-toggle-filters:checked ~ .pc-map-layout .pc-panel-left,
+  #pc-toggle-details:checked ~ .pc-map-layout .pc-panel-right {
+    display: flex !important;
+  }
+
+  /* Drawer expandido em mobile quando JS adiciona .open */
+  #drawer.open {
+    z-index: 1060;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Desktop / tablet (≥768px)                                                    */
+/* -------------------------------------------------------------------------- */
+@media (min-width: 768px) {
+  .pc-fab,
+  .pc-sheet-backdrop {
+    display: none !important;
+  }
+
+  .pc-panel-left,
+  .pc-panel-right {
+    position: static;
+    transform: none;
+    transition: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  #drawer.open {
+    /* Em desktop o painel direito já está sempre visível */
+  }
+}
