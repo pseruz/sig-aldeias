@@ -1,4 +1,4 @@
-// js/map-logic.js — Marcadores Leaflet por status/vulnerabilidade (Fase 2.2-C)
+// js/map-logic.js — Marcadores, BIM/Revit e camadas de evacuação (Fases 2.2-C / 2.2-D)
 
 const STATUS_COLORS = {
     pendente: '#DC3545',
@@ -7,9 +7,14 @@ const STATUS_COLORS = {
 };
 
 const VULNERABLE_BORDER = '#FFC107';
+const EVACUATION_ROUTE_COLOR = '#0D6EFD';
 
 let map;
 let markersLayer;
+let lastHouseholds = [];
+
+window.evacuationLayer = null;
+window.riskLayers = null;
 
 /** Cores por status; borda amarela se idosos ou crianças */
 function getColorCode(household) {
@@ -63,6 +68,213 @@ function formatDrawerContent(household) {
         <p class="mb-0"><strong>Coordenadas:</strong> ${household.latitude.toFixed(5)}, ${household.longitude.toFixed(5)}</p>
         ${household.rejection_reason ? `<p class="mt-2 mb-0"><strong>Motivo rejeição:</strong> ${household.rejection_reason}</p>` : ''}
     `;
+}
+
+function shouldShowBIM(household) {
+    const name = (household.name || '').toLowerCase();
+    const publicKeywords = ['hotel', 'pavilhão', 'pavilhao', 'escola'];
+    const isPublic = publicKeywords.some((kw) => name.includes(kw));
+    return (
+        household.num_floors >= 2 ||
+        household.material === 'betão' ||
+        isPublic
+    );
+}
+
+/** Secção BIM condicional + botão Validar Dados Técnicos */
+function renderBIMPanel(household) {
+    if (!shouldShowBIM(household)) {
+        return '';
+    }
+
+    const exits = Math.floor(household.num_floors * 0.5) + 1;
+    const hydrants = Math.max(1, Math.floor(household.num_floors / 2));
+    const meetingPoints = 1;
+
+    return `
+        <section class="pc-bim-section" aria-label="Plano técnico de emergência">
+            <h3>Plano Técnico de Emergência (Simulação BIM/Revit)</h3>
+            <div class="pc-bim-row">
+                <i class="bi bi-door-open pc-bim-icon" aria-hidden="true"></i>
+                <span class="pc-bim-label">Saídas de Emergência</span>
+                <span class="pc-bim-count" id="exits-count">${exits}</span>
+            </div>
+            <div class="pc-bim-row">
+                <i class="bi bi-fire pc-bim-icon" aria-hidden="true"></i>
+                <span class="pc-bim-label">Bocas de Incêndio</span>
+                <span class="pc-bim-count" id="hydrants-count">${hydrants}</span>
+            </div>
+            <div class="pc-bim-row">
+                <i class="bi bi-geo-alt pc-bim-icon" aria-hidden="true"></i>
+                <span class="pc-bim-label">Pontos de Encontro</span>
+                <span class="pc-bim-count" id="meeting-points-count">${meetingPoints}</span>
+            </div>
+            <button type="button" class="btn pc-btn-critical w-100 mt-2" id="btn-validate-technical"
+                    data-household-id="${household.id}">
+                Validar Dados Técnicos
+            </button>
+            <div id="validate-msg" class="pc-validate-msg" role="status" aria-live="polite"></div>
+        </section>
+    `;
+}
+
+function wireValidateButton(household) {
+    const btn = document.getElementById('btn-validate-technical');
+    if (!btn) return;
+
+    btn.addEventListener('click', () => validateHousehold(household.id));
+}
+
+async function validateHousehold(householdId) {
+    const msgEl = document.getElementById('validate-msg');
+    if (msgEl) {
+        msgEl.textContent = 'A validar…';
+        msgEl.className = 'pc-validate-msg';
+    }
+
+    try {
+        const response = await fetch(`/validation/${householdId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+                ...getAuthHeaders(),
+            },
+            body: JSON.stringify({
+                status: 'validado',
+                reason: 'Validação técnica operacional (mapa)',
+            }),
+        });
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.detail || `HTTP ${response.status}`);
+        }
+
+        if (msgEl) {
+            msgEl.textContent = 'Agregado validado com sucesso.';
+            msgEl.className = 'pc-validate-msg pc-validate-msg--ok';
+        }
+        await loadHouseholdMarkers();
+    } catch (err) {
+        console.error('Erro na validação:', err);
+        if (msgEl) {
+            msgEl.textContent = 'Falha na validação. Verifique o token JWT e permissões de técnico.';
+            msgEl.className = 'pc-validate-msg pc-validate-msg--err';
+        }
+    }
+}
+
+/** Gera rotas mock ligando agregados próximos */
+function buildMockEvacuationRoutes(households) {
+    const coords = households
+        .map((h) => ({
+            lat: Number(h.latitude),
+            lon: Number(h.longitude),
+        }))
+        .filter((c) => Number.isFinite(c.lat) && Number.isFinite(c.lon) && !(c.lat === 0 && c.lon === 0));
+
+    const routes = [];
+    for (let i = 0; i < coords.length - 1; i += 1) {
+        const a = coords[i];
+        const b = coords[i + 1];
+        const midLat = (a.lat + b.lat) / 2 + 0.0008;
+        const midLon = (a.lon + b.lon) / 2 - 0.0006;
+        routes.push([
+            [a.lat, a.lon],
+            [midLat, midLon],
+            [b.lat, b.lon],
+        ]);
+    }
+
+    if (routes.length === 0 && coords.length === 1) {
+        const c = coords[0];
+        routes.push([
+            [c.lat, c.lon],
+            [c.lat + 0.002, c.lon + 0.001],
+            [c.lat + 0.001, c.lon + 0.003],
+        ]);
+    }
+
+    return routes;
+}
+
+function drawEvacuationRoutes(enabled) {
+    if (!map) return;
+
+    if (window.evacuationLayer) {
+        map.removeLayer(window.evacuationLayer);
+        window.evacuationLayer = null;
+    }
+
+    if (!enabled) return;
+
+    const routes = buildMockEvacuationRoutes(lastHouseholds);
+    window.evacuationLayer = L.layerGroup();
+
+    routes.forEach((latlngs) => {
+        const line = L.polyline(latlngs, {
+            color: EVACUATION_ROUTE_COLOR,
+            weight: 4,
+            opacity: 0.7,
+        });
+        line.bindPopup('<small>Rotas calculadas para evacuação prioritária</small>');
+        window.evacuationLayer.addLayer(line);
+    });
+
+    window.evacuationLayer.addTo(map);
+}
+
+function drawRiskZones(enabled) {
+    if (!map) return;
+
+    if (window.riskLayers) {
+        map.removeLayer(window.riskLayers);
+        window.riskLayers = null;
+    }
+
+    if (!enabled) return;
+
+    window.riskLayers = L.layerGroup();
+
+    lastHouseholds.forEach((household) => {
+        const lat = Number(household.latitude);
+        const lon = Number(household.longitude);
+        if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+
+        if (household.status === 'pendente') {
+            L.circle([lat, lon], {
+                radius: 100,
+                color: '#DC3545',
+                fillColor: '#DC3545',
+                fillOpacity: 0.2,
+                weight: 1,
+            })
+                .bindPopup(`<small>Alto risco — ${household.name}</small>`)
+                .addTo(window.riskLayers);
+        }
+
+        if (household.has_elderly) {
+            L.circle([lat, lon], {
+                radius: 50,
+                color: '#FFC107',
+                fillColor: '#FFC107',
+                fillOpacity: 0.2,
+                weight: 1,
+            })
+                .bindPopup(`<small>Médio risco (idosos) — ${household.name}</small>`)
+                .addTo(window.riskLayers);
+        }
+    });
+
+    window.riskLayers.addTo(map);
+}
+
+function refreshOperationalLayers() {
+    const evacToggle = document.getElementById('toggle-evacuation');
+    const riskToggle = document.getElementById('toggle-risk');
+    drawEvacuationRoutes(Boolean(evacToggle?.checked));
+    drawRiskZones(Boolean(riskToggle?.checked));
 }
 
 /** Marcador circular 8px com popup formatado */
@@ -125,6 +337,7 @@ async function loadHouseholdMarkers() {
 
         const data = await response.json();
         const households = applyClientFilters(Array.isArray(data) ? data : []);
+        lastHouseholds = households;
 
         markersLayer.clearLayers();
 
@@ -145,6 +358,8 @@ async function loadHouseholdMarkers() {
         } else if (bounds.length > 1) {
             map.fitBounds(bounds, { padding: [40, 40] });
         }
+
+        refreshOperationalLayers();
     } catch (err) {
         console.error('Erro ao carregar agregados:', err);
         document.getElementById('drawer-content').innerHTML =
@@ -161,6 +376,8 @@ function initMap() {
     }).addTo(map);
 
     markersLayer = L.layerGroup().addTo(map);
+    window.evacuationLayer = null;
+    window.riskLayers = null;
 }
 
 function wireMapControls() {
@@ -175,6 +392,16 @@ function wireMapControls() {
             el.addEventListener('change', () => loadHouseholdMarkers());
         }
     });
+
+    const evacToggle = document.getElementById('toggle-evacuation');
+    if (evacToggle) {
+        evacToggle.addEventListener('change', (e) => drawEvacuationRoutes(e.target.checked));
+    }
+
+    const riskToggle = document.getElementById('toggle-risk');
+    if (riskToggle) {
+        riskToggle.addEventListener('change', (e) => drawRiskZones(e.target.checked));
+    }
 }
 
 // --- Painel direito (#drawer) — IDs preservados ---
@@ -185,7 +412,9 @@ function abrirDetalhe(nomeOuHousehold) {
 
     if (typeof nomeOuHousehold === 'object' && nomeOuHousehold !== null) {
         titleEl.innerText = nomeOuHousehold.name;
-        contentEl.innerHTML = formatDrawerContent(nomeOuHousehold);
+        contentEl.innerHTML =
+            formatDrawerContent(nomeOuHousehold) + renderBIMPanel(nomeOuHousehold);
+        wireValidateButton(nomeOuHousehold);
     } else {
         titleEl.innerText = nomeOuHousehold;
         contentEl.innerHTML = `<p>Dados detalhados sobre ${nomeOuHousehold} serão carregados aqui...</p>`;
@@ -193,7 +422,6 @@ function abrirDetalhe(nomeOuHousehold) {
 
     drawer.classList.add('open');
 
-    // Mobile: abre bottom sheet de detalhes
     const detailsToggle = document.getElementById('pc-toggle-details');
     if (detailsToggle) detailsToggle.checked = true;
 }
