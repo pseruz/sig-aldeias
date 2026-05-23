@@ -181,6 +181,12 @@ body.pc-operational main.container-fluid {
   font-family: inherit;
 }
 
+.leaflet-popup-content .pc-map-popup {
+  color: #212529;
+  line-height: 1.4;
+  min-width: 140px;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Painel detalhes / drawer (IDs preservados para map-logic.js)                 */
 /* -------------------------------------------------------------------------- */
