@@ -3,6 +3,20 @@
 Todos os lançamentos notáveis deste projeto serão documentados neste ficheiro.
 O formato segue as boas práticas de [Keep a Changelog](https://keepachangelog.com/pt/BR/1.0.0/).
 
+## [0.2.2] - 2026-06-08
+### Added
+- **Dashboard Bento Box:** Layout moderno de 3 colunas (Filtros, Mapa, Validação) com cantos arredondados e design tático escuro.
+- **Fichas Técnicas Completas:** Sistema de edição de dados com validação de coordenadas GPS, mini-mapa e geração de QR Code.
+- **Gestão de Alertas:** Painel de alertas em tempo real e contadores de Zonas de Risco (Alta, Média, Baixa).
+- **Impressão PDF:** Layout otimizado para impressão de fichas técnicas.
+- **Placeholders de Fotografia:** Área dedicada para upload de imagens do local no registo e ficha técnica.
+
+### Changed
+- **UI/UX Overhaul:** Refatoração completa do `style.css` e `map.html` para suportar o layout "Bento Box" e scroll independente nos painéis laterais.
+- **Recuperação de Projeto:** Reestruturação do repositório após incidente de limpeza acidental.
+
+---
+
 ## [0.2.1] - 2026-05-18
 ### Added
 - ✅ Núcleo do MVP: Autenticação JWT com controlo de acesso por perfis (admin, técnico, coordenador)
