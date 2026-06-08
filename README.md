@@ -81,38 +81,51 @@ O sistema permite:
 ## Instalação e Execução
 
 ### Pré-requisitos
+
 - Python 3.10 ou superior
 - pip (gestor de pacotes Python)
 
 ### Passos
 
 1. **Clonar o repositório**
-   ```bash
+   ```
    git clone https://github.com/pseruz/sig-aldeias.git
    cd sig-aldeias
+   ```
 
 2. **Criar ambiente virtual**
+    ```
     python3 -m venv venv
     source venv/bin/activate  # Linux/Mac
     # ou
     venv\Scripts\activate  # Windows
+    ```
 
-4. **Instalar dependências**
+3. **Instalar dependências**
+    ``` 
     pip install -r requirements.txt
+    ``` 
 
-5.  **Iniciar servidor**
-     python scripts/init_db.py
-     python scripts/seed_roles.py
+4.  **Iniciar servidor**
+    ``` 
+    python scripts/init_db.py
+    python scripts/seed_roles.py
+    ```  
+
+5.  **Aceder à aplicação**
+    ``` 
+    uvicorn src.api.main:app --reload --host 127.0.0.1 --port 8000
+    ``` 
 
 6.  **Aceder à aplicação**
-     uvicorn src.api.main:app --reload --host 127.0.0.1 --port 8000
-
-7.  **Aceder à aplicação**
-     http://127.0.0.1:8000
+      ```
+      http://127.0.0.1:8000
+      ```
     
     ---
 
     **Credenciais de Teste**
+    
     | Role | email | Password |
     |-------|------|--------|
     | Administrador | admin@pc.pt | admin123 |
@@ -122,6 +135,7 @@ O sistema permite:
     ---
 
     **Estrutura do Projeto**
+    ```
     sig-aldeias/
     ├── docs/                    # Documentação
     │   ├── requisitos/          # Documentos de requisitos (MoSCoW)
@@ -142,11 +156,15 @@ O sistema permite:
     ├── data/                    # Base de dados SQLite
     ├── requirements.txt         # Dependências Python
     └── README.md               # Este ficheiro
+    ```
 
     **Licença**
+    
     Este projeto foi desenvolvido para fins académicos no âmbito da Licenciatura em Engenharia Informática da Universidade Aberta.
 
     **Contacto**
+   ``` 
    Pedro Cruz
    Email: 2003655@estudante.uab.pt
    GitHub: https://github.com/pseruz
+   ```
