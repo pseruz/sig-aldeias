@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Relatórios - SIG-Aldeias{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>📊 Exportação de Relatórios</h2>
+        <p class="text-muted">Exporte dados filtrados para análise externa</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">🔍 Filtros</h5>
+            </div>
+            <div class="card-body">
+                <form id="filterForm">
+                    <div class="mb-3">
+                        <label class="form-label">Material Estrutural</label>
+                        <select class="form-select" name="material" id="materialFilter">
+                            <option value="">Todos</option>
+                            <option value="betão">Betão</option>
+                            <option value="madeira">Madeira</option>
+                            <option value="alvenaria">Alvenaria</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" name="has_elderly" id="elderlyFilter">
+                        <label class="form-check-label" for="elderlyFilter">Com idosos (>65)</label>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" name="has_children" id="childrenFilter">
+                        <label class="form-check-label" for="childrenFilter">Com crianças (<12)</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Estado</label>
+                        <select class="form-select" name="status" id="statusFilter">
+                            <option value="">Todos</option>
+                            <option value="pendente">Pendente</option>
+                            <option value="validado">Validado</option>
+                            <option value="rejeitado">Rejeitado</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="applyFilters()">Aplicar Filtros</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetFilters()">Limpar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">⬇️ Exportar</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a id="csvExport" href="#" class="btn btn-outline-primary" download>
+                        📄 Exportar para CSV
+                    </a>
+                    <a id="pdfExport" href="#" class="btn btn-outline-danger" download>
+                        📕 Exportar para PDF
+                    </a>
+                </div>
+                <small class="text-muted d-block mt-2">
+                    * Os filtros aplicados serão usados na exportação
+                </small>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">📈 Resumo Rápido</h5>
+            </div>
+            <div class="card-body">
+                <div id="summaryStats">
+                    <p class="text-muted">Aguardando filtros...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Funções simples para interação com a API
+function getAuthHeader() {
+    const token = localStorage.getItem('access_token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
+function buildQueryParams() {
+    const params = new URLSearchParams();
+    const material = document.getElementById('materialFilter').value;
+    const has_elderly = document.getElementById('elderlyFilter').checked;
+    const has_children = document.getElementById('childrenFilter').checked;
+    const status = document.getElementById('statusFilter').value;
+    
+    if (material) params.append('material', material);
+    if (document.getElementById('elderlyFilter').checked) params.append('has_elderly', 'true');
+    if (document.getElementById('childrenFilter').checked) params.append('has_children', 'true');
+    if (status) params.append('status', status);
+    
+    return params.toString();
+}
+
+function applyFilters() {
+    const queryParams = buildQueryParams();
+    
+    // Atualizar links de exportação
+    document.getElementById('csvExport').href = `/reports/export/csv?${queryParams}`;
+    document.getElementById('pdfExport').href = `/reports/export/pdf?${queryParams}`;
+    
+    // Carregar resumo estatístico
+    fetch(`/reports/summary?${queryParams}`, { headers: getAuthHeader() })
+        .then(res => res.json())
+        .then(data => {
+            const stats = document.getElementById('summaryStats');
+            stats.innerHTML = `
+                <p><strong>Total:</strong> ${data.total} registos</p>
+                <p><strong>Com idosos:</strong> ${data.vulnerability.with_elderly}</p>
+                <p><strong>Com crianças:</strong> ${data.vulnerability.with_children}</p>
+                <p><strong>Validados:</strong> ${data.by_status.validado}</p>
+            `;
+        })
+        .catch(err => console.error('Erro ao carregar resumo:', err));
+}
+
+function resetFilters() {
+    document.getElementById('filterForm').reset();
+    applyFilters(); // Recarregar com filtros limpos
+}
+
+// Inicializar com filtros padrão
+document.addEventListener('DOMContentLoaded', applyFilters);
+</script>
+{% endblock %}

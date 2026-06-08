@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registo - SIG-Aldeias Wireframe</title>
+    <link rel="stylesheet" href="css/wireframe.css">
+</head>
+<body>
+    <div class="wireframe-container">
+        <div class="header">
+            <h1>.SIG-Aldeias - Registo de Agregado</h1>
+        </div>
+        
+        <div class="nav-links">
+            <a href="index.html">← Voltar</a>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="mapa.html">Mapa</a>
+            <a href="ficha.html">Ficha Detalhada</a>
+        </div>
+
+        <div class="wf-section">
+            <h2>Formulário de Registo de Agregado Familiar</h2>
+            <p>Formulário estruturado para recolha de dados territoriais no terreno.</p>
+        </div>
+
+        <form>
+            <div class="wf-grid">
+                <div class="wf-card">
+                    <h3>📍 Localização</h3>
+                    <div class="wf-form-group">
+                        <label class="wf-label">Nome do Agregado *</label>
+                        <input type="text" class="wf-input" placeholder="Ex: Família Silva">
+                    </div>
+                    <div class="wf-form-group">
+                        <label class="wf-label">Coordenadas GPS *</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <input type="text" class="wf-input" placeholder="Latitude (ex: 40.2345)">
+                            <input type="text" class="wf-input" placeholder="Longitude (ex: -8.1234)">
+                        </div>
+                        <small style="color: var(--dark-gray);">Formato: graus decimais (WGS84)</small>
+                    </div>
+                    <div class="wf-form-group">
+                        <label class="wf-label">Localização no Mapa</label>
+                        <div class="map-placeholder" style="height: 150px;">
+                            <div>Clique no mapa para definir localização</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wf-card">
+                    <h3>👥 Dados Demográficos</h3>
+                    <div class="wf-form-group">
+                        <label class="wf-label">Número de Pessoas *</label>
+                        <input type="number" class="wf-input" min="1" value="1">
+                    </div>
+                    <div class="wf-form-group">
+                        <label class="wf-label">Perfis de Risco</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 5px;">
+                            <label style="display: flex; align-items: center;">
+                                <input type="checkbox" style="margin-right: 8px;"> Idosos (>65 anos)
+                            </label>
+                            <label style="display: flex; align-items: center;">
+                                <input type="checkbox" style="margin-right: 8px;"> Crianças (<12 anos)
+                            </label>
+                            <label style="display: flex; align-items: center;">
+                                <input type="checkbox" style="margin-right: 8px;"> Mobilidade Reduzida
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="wf-card" style="margin-top: 20px;">
+                <h3>🏗️ Atributos Estruturais</h3>
+                <div class="wf-grid">
+                    <div class="wf-form-group">
+                        <label class="wf-label">Número de Pisos *</label>
+                        <select class="wf-select">
+                            <option>1</option>
+                            <option selected>2</option>
+                            <option>3</option>
+                            <option>4+</option>
+                        </select>
+                    </div>
+                    <div class="wf-form-group">
+                        <label class="wf-label">Tipo de Material *</label>
+                        <select class="wf-select">
+                            <option>betão</option>
+                            <option selected>madeira</option>
+                            <option>alvenaria</option>
+                        </select>
+                    </div>
+                    <div class="wf-form-group">
+                        <label class="wf-label">Observações</label>
+                        <textarea class="wf-textarea" rows="3" placeholder="Notas adicionais sobre o edifício..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; text-align: right;">
+                <button type="button" class="wf-btn">Cancelar</button>
+                <button type="submit" class="wf-btn wf-btn--primary">Guardar Registo</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

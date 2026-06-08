@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% block title %}Ficha Técnica #{{ ficha.id }} - SIG-Aldeias{% endblock %}
+{% block body_class %}pc-operational{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Cabeçalho -->
+    <div class="pc-ficha-header mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <a href="/map" class="btn btn-outline-light btn-sm mb-2">
+                    <i class="bi bi-arrow-left me-1"></i>Voltar ao Mapa
+                </a>
+                <h1 class="h3 pc-text mb-0">
+                    <i class="bi bi-file-earmark-text me-2"></i>
+                    Ficha Técnica #{{ ficha.id }}
+                </h1>
+                <p class="pc-text-muted small mb-0">
+                    <i class="bi bi-clock me-1"></i>Criado em {{ ficha.created_at }}
+                </p>
+            </div>
+            <div class="text-end">
+                <span class="badge fs-6 
+                    {% if ficha.status == 'validado' %}bg-success
+                    {% elif ficha.status == 'pendente' %}bg-warning text-dark
+                    {% else %}bg-secondary{% endif %}">
+                    {{ ficha.status|upper }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Coluna Esquerda: Mini-mapa + QR Code + Foto -->
+        <div class="col-lg-4">
+            <div class="pc-panel p-3 mb-3">
+                <h5 class="pc-text fw-bold mb-3">
+                    <i class="bi bi-geo-alt me-2"></i>Localização
+                </h5>
+                <div id="mini-map" style="height: 250px; border-radius: 8px;"></div>
+                <small class="pc-text-muted d-block mt-2 mb-2">
+                    <i class="bi bi-info-circle me-1"></i>Todos os pontos registados
+                </small>
+                
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="pc-text-muted small d-block">Latitude</label>
+                        <input type="number" class="form-control pc-input" id="field-latitude" 
+                               value="{{ ficha.latitude }}" step="0.000001" disabled>
+                    </div>
+                    <div class="col-6">
+                        <label class="pc-text-muted small d-block">Longitude</label>
+                        <input type="number" class="form-control pc-input" id="field-longitude" 
+                               value="{{ ficha.longitude }}" step="0.000001" disabled>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Placeholder de Foto -->
+            <div class="pc-panel p-3 mb-3">
+                <h5 class="pc-text fw-bold mb-3">
+                    <i class="bi bi-camera me-2"></i>Fotografia do Local
+                </h5>
+                <div class="pc-photo-placeholder">
+                    <div class="pc-photo-empty">
+                        <i class="bi bi-camera-fill"></i>
+                        <p class="pc-text-muted small mb-0">Sem fotografia</p>
+                        <small class="pc-text-muted">Capturar durante registo</small>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-light w-100 mt-2" id="btn-add-photo" disabled>
+                    <i class="bi bi-camera me-1"></i>Adicionar Foto
+                </button>
+            </div>
+
+            <div class="pc-panel p-3">
+                <h5 class="pc-text fw-bold mb-3">
+                    <i class="bi bi-qr-code me-2"></i>QR Code
+                </h5>
+                <div id="qrcode" class="text-center mb-2"></div>
+                <p class="pc-text-muted small text-center mb-0">
+                    Digitaliza para abrir esta ficha
+                </p>
+            </div>
+        </div>
+
+        <!-- Coluna Direita: Dados do Agregado -->
+        <div class="col-lg-8">
+            <!-- Identificação -->
+            <div class="pc-panel p-3 mb-3">
+                <h5 class="pc-text fw-bold mb-3">
+                    <i class="bi bi-person-badge me-2"></i>Identificação
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="pc-text-muted small d-block">Nome do Agregado</label>
+                        <input type="text" class="form-control pc-input" id="field-name" value="{{ ficha.name }}" disabled>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="pc-text-muted small d-block">Ocupantes</label>
+                        <input type="number" class="form-control pc-input" id="field-num_people" value="{{ ficha.num_people }}" min="1" max="20" disabled>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="pc-text-muted small d-block">Pisos</label>
+                        <input type="number" class="form-control pc-input" id="field-num_floors" value="{{ ficha.num_floors }}" min="1" max="5" disabled>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="pc-text-muted small d-block">Material Estrutural</label>
+                        <select class="form-select pc-input" id="field-material" disabled>
+                            <option value="betão" {% if ficha.material == 'betão' %}selected{% endif %}>Betão</option>
+                            <option value="alvenaria" {% if ficha.material == 'alvenaria' %}selected{% endif %}>Alvenaria</option>
+                            <option value="madeira" {% if ficha.material == 'madeira' %}selected{% endif %}>Madeira</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="pc-text-muted small d-block">Vulnerabilidades</label>
+                        <div class="d-flex gap-3 mt-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="field-has_elderly" {% if ficha.has_elderly %}checked{% endif %} disabled>
+                                <label class="form-check-label pc-text" for="field-has_elderly"> Idosos</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="field-has_children" {% if ficha.has_children %}checked{% endif %} disabled>
+                                <label class="form-check-label pc-text" for="field-has_children">👶 Crianças</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="field-has_mobility_issues" {% if ficha.has_mobility_issues %}checked{% endif %} disabled>
+                                <label class="form-check-label pc-text" for="field-has_mobility_issues">♿ Mobilidade</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inteligência Operacional -->
+            <div class="pc-panel p-3 mb-3">
+                <h5 class="pc-text fw-bold mb-3">
+                    <i class="bi bi-lightning-charge me-2"></i>Inteligência Operacional
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="pc-text-muted small d-block">Ponto de Encontro</label>
+                        <input type="text" class="form-control pc-input" id="field-evacuation_point_name" 
+                               value="{{ ficha.evacuation_point_name or '' }}" 
+                               placeholder="Ex: Campo de Futebol" disabled>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="pc-text-muted small d-block">Distância (m)</label>
+                        <input type="number" class="form-control pc-input" id="field-evacuation_point_distance" 
+                               value="{{ ficha.evacuation_point_distance or '' }}" 
+                               min="0" placeholder="450" disabled>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="pc-text-muted small d-block">TEE (min)</label>
+                        <input type="number" class="form-control pc-input" id="field-tee_minutes" 
+                               value="{{ ficha.tee_minutes or '' }}" 
+                               min="0" placeholder="8" disabled>
+                    </div>
+                    <div class="col-12">
+                        <label class="pc-text-muted small d-block">Cortes de Utilidades</label>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <input type="text" class="form-control pc-input" id="field-cutoff-water" 
+                                       value="{{ ficha.utility_cutoffs.water or '' }}" 
+                                       placeholder="Ex: Lado Norte - Porta Principal" disabled>
+                                <small class="pc-text-muted">💧 Água</small>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" class="form-control pc-input" id="field-cutoff-gas" 
+                                       value="{{ ficha.utility_cutoffs.gas or '' }}" 
+                                       placeholder="Ex: Lado Sul - Rua Principal" disabled>
+                                <small class="pc-text-muted">🔥 Gás</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ✅ Infraestruturas com Coordenadas Editáveis -->
+            <div class="pc-panel p-3 mb-3">
+                <h5 class="pc-text fw-bold mb-3">
+                    <i class="bi bi-gear-wide-connected me-2"></i>Infraestruturas Técnicas
+                </h5>
+                <div id="infrastructures-list">
+                    {% if ficha.infrastructures %}
+                        {% for key, data in ficha.infrastructures.items() %}
+                            {% if data.status == 'exists' and data.lat and data.lng %}
+                            <div class="mb-3 p-3 bg-dark rounded">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong class="pc-text">
+                                        {% if key == 'emergency_doors' %}🚪 Saídas de Emergência
+                                        {% elif key == 'fire_hydrants' %}🔥 Bocas de Incêndio
+                                        {% elif key == 'meeting_point' %}📍 Ponto de Encontro
+                                        {% else %}{{ key|replace('_', ' ')|title }}{% endif %}
+                                    </strong>
+                                    <span class="badge bg-success">Existe</span>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="pc-text-muted small d-block">Latitude</label>
+                                        <input type="number" class="form-control pc-input infra-coord" 
+                                               id="field-infra-{{ key }}-lat" 
+                                               value="{{ data.lat }}" step="0.000001" disabled>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="pc-text-muted small d-block">Longitude</label>
+                                        <input type="number" class="form-control pc-input infra-coord" 
+                                               id="field-infra-{{ key }}-lng" 
+                                               value="{{ data.lng }}" step="0.000001" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <p class="pc-text-muted mb-0">Nenhuma infraestrutura registada</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Observações -->
+            <div class="pc-panel p-3 mb-3">
+                <h5 class="pc-text fw-bold mb-3">
+                    <i class="bi bi-chat-left-text me-2"></i>Observações
+                </h5>
+                <textarea class="form-control pc-input" id="field-observations" rows="4" 
+                          placeholder="Adicionar observações..." disabled>{{ ficha.observations or '' }}</textarea>
+            </div>
+
+            <!-- Botões de Ação -->
+            <div class="d-flex gap-2 mb-4">
+                <button type="button" class="btn pc-btn-critical" id="btn-edit">
+                    <i class="bi bi-pencil me-1"></i>Editar
+                </button>
+                <button type="button" class="btn btn-success d-none" id="btn-save">
+                    <i class="bi bi-check-lg me-1"></i>Guardar
+                </button>
+                <button type="button" class="btn btn-secondary d-none" id="btn-cancel">
+                    <i class="bi bi-x-lg me-1"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-outline-light ms-auto" id="btn-print">
+                    <i class="bi bi-printer me-1"></i>Imprimir PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const FICHA_ID = {{ ficha.id }};
+    const INFRASTRUCTURES = {{ ficha.infrastructures | tojson }};
+</script>
+<script src="{{ url_for('static', path='/js/ficha-logic.js') }}"></script>
+{% endblock %}

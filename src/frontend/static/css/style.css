@@ -1,0 +1,1134 @@
+/**
+ * SIG-Aldeias — Proteção Civil Dark Mode
+ * Paleta: #121824 | #FF6B00 | #F8F9FA
+ * Layout: Bento Box Dashboard
+ */
+
+:root {
+  --pc-bg-panel: #121824;
+  --pc-bg-main: #0d111a;
+  --pc-accent: #ff6b00;
+  --pc-text: #f8f9fa;
+  --pc-text-muted: #adb5bd;
+  --pc-border: rgba(248, 249, 250, 0.12);
+  --pc-nav-height: 56px;
+  --pc-sheet-height: 60vh;
+  --pc-touch-min: 44px;
+  --pc-radius: 12px;
+  --pc-gap: 12px;
+}
+
+/* ========================================================================= */
+/* 1. UTILITÁRIOS GLOBAIS                                                    */
+/* ========================================================================= */
+
+.pc-text { color: var(--pc-text); }
+.pc-text-muted { color: var(--pc-text-muted); }
+
+.pc-panel {
+  background-color: var(--pc-bg-panel);
+  color: var(--pc-text);
+  border: 1px solid var(--pc-border);
+}
+
+.pc-btn-critical {
+  background-color: var(--pc-accent);
+  border-color: var(--pc-accent);
+  color: #1a1a1a;
+  font-weight: 600;
+  min-height: var(--pc-touch-min);
+}
+
+.pc-btn-critical:hover,
+.pc-btn-critical:focus {
+  background-color: #e65f00;
+  border-color: #e65f00;
+  color: #1a1a1a;
+}
+
+/* ========================================================================= */
+/* 2. LAYOUT BENTO BOX - PÁGINA DO MAPA                                      */
+/* ========================================================================= */
+
+body.pc-operational {
+  background-color: var(--pc-bg-main);
+  color: var(--pc-text);
+  overflow: hidden;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+body.pc-operational .navbar {
+  background-color: var(--pc-bg-panel) !important;
+  border-bottom: 1px solid var(--pc-border);
+  min-height: var(--pc-nav-height);
+}
+
+body.pc-operational .navbar-brand,
+body.pc-operational .nav-link,
+body.pc-operational .navbar-text {
+  color: var(--pc-text) !important;
+}
+
+/* Container principal - ocupa altura após navbar */
+body.pc-operational main.container-fluid {
+  height: calc(100vh - var(--pc-nav-height));
+  max-height: calc(100vh - var(--pc-nav-height));
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+}
+
+/* Moldura principal da aplicação */
+.pc-app-frame {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--pc-gap);
+  gap: var(--pc-gap);
+  box-sizing: border-box;
+  background-color: var(--pc-bg-main);
+}
+
+/* Layout de 3 colunas */
+.pc-map-layout {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  gap: var(--pc-gap);
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ========================================================================= */
+/* 3. PAINEL ESQUERDO (Filtros) - SCROLL FUNCIONAL                          */
+/* ========================================================================= */
+
+.pc-panel-left {
+  width: 320px;
+  min-width: 280px;
+  max-width: 450px;
+  background-color: var(--pc-bg-panel);
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius);
+  padding: 1rem;
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  
+  /* ✅ CORREÇÃO: Limitar altura e permitir scroll */
+  max-height: calc(100vh - var(--pc-nav-height) - 36px);
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  
+  /* ✅ SCROLLBAR À ESQUERDA */
+  direction: rtl;
+}
+
+/* ✅ Manter texto na direção correta */
+.pc-panel-left > * {
+  direction: ltr;
+  flex-shrink: 0;
+}
+
+/* Scrollbar personalizada */
+.pc-panel-left::-webkit-scrollbar,
+.pc-panel-right::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pc-panel-left::-webkit-scrollbar-track,
+.pc-panel-right::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.pc-panel-left::-webkit-scrollbar-thumb,
+.pc-panel-right::-webkit-scrollbar-thumb {
+  background: var(--pc-accent);
+  border-radius: 4px;
+}
+
+.pc-panel-left::-webkit-scrollbar-thumb:hover,
+.pc-panel-right::-webkit-scrollbar-thumb:hover {
+  background: #e65f00;
+}
+
+/* ========================================================================= */
+/* 4. COLUNA CENTRAL - MAPA                                                 */
+/* ========================================================================= */
+
+.pc-map-column {
+  flex: 1;
+  min-width: 0; /* ✅ Crítico para flexbox */
+  position: relative;
+  background: #1a2332;
+  border-radius: var(--pc-radius);
+  overflow: hidden;
+  border: 1px solid var(--pc-border);
+  display: flex;
+  flex-direction: column;
+  
+  /* ✅ CORREÇÃO: Altura calculada corretamente */
+  height: calc(100vh - var(--pc-nav-height) - 36px);
+  min-height: 0; /* ✅ Permite encolher */
+}
+
+#map-container {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 0; /* ✅ Crítico para Leaflet */
+  z-index: 1;
+}
+
+.pc-map-column .leaflet-container {
+  background: #1a2332;
+  font-family: inherit;
+  height: 100%;
+  width: 100%;
+}
+
+.leaflet-popup-content .pc-map-popup {
+  color: #212529;
+  line-height: 1.4;
+  min-width: 140px;
+}
+
+/* ========================================================================= */
+/* 5. PAINEL DIREITO (Validação) - SCROLL FUNCIONAL                         */
+/* ========================================================================= */
+
+.pc-panel-right {
+  width: 360px;
+  min-width: 280px;
+  max-width: 500px;
+  background-color: var(--pc-bg-panel);
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius);
+  padding: 1rem;
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  
+  /* ✅ CORREÇÃO: Limitar altura e permitir scroll */
+  max-height: calc(100vh - var(--pc-nav-height) - 36px); /* Altura total - navbar - gaps */
+  overflow-y: auto !important;
+  overflow-x: hidden;
+}
+
+/* ✅ CORREÇÃO: Drawer content com scroll independente */
+#drawer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0; /* ✅ Permite scroll */
+  gap: 0.75rem;
+  width: 100%;
+}
+
+#drawer-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--pc-text);
+  margin: 0;
+  flex-shrink: 0; /* ✅ Não expande */
+}
+
+#drawer-content {
+  flex: 1;
+  overflow-y: auto !important; /* ✅ Scroll independente */
+  font-size: 0.9rem;
+  color: var(--pc-text-muted);
+  min-height: 0; /* ✅ Crítico para scroll funcionar */
+}
+
+#drawer.open #drawer-content {
+  color: var(--pc-text);
+}
+
+/* ✅ CORREÇÃO: Lista de pendentes com altura máxima */
+#pending-list {
+  max-height: 30vh; /* ✅ Limita altura da lista */
+  overflow-y: auto;
+}
+
+#pending-list::-webkit-scrollbar { width: 6px; }
+#pending-list::-webkit-scrollbar-track {
+  background: var(--pc-bg-main);
+  border-radius: 3px;
+}
+#pending-list::-webkit-scrollbar-thumb {
+  background: var(--pc-accent);
+  border-radius: 3px;
+}
+
+/* ========================================================================= */
+/* 6. HANDLES DE REDIMENSIONAMENTO                                           */
+/* ========================================================================= */
+
+.pc-resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  z-index: 1000;
+  background: rgba(255, 107, 0, 0.15);
+  transition: background 0.2s;
+}
+
+.pc-resize-handle:hover,
+.pc-resize-handle.active {
+  background: rgba(255, 107, 0, 0.3);
+}
+
+.pc-resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px;
+  height: 40px;
+  background: var(--pc-accent);
+  border-radius: 2px;
+  opacity: 0.6;
+}
+
+.pc-resize-handle:hover::after {
+  opacity: 0.9;
+}
+
+.pc-panel-left .pc-resize-handle {
+  right: -4px;
+}
+
+.pc-panel-right .pc-resize-handle {
+  left: -4px;
+}
+
+/* ========================================================================= */
+/* 7. BANNER DE MODO                                                         */
+/* ========================================================================= */
+
+.pc-mode-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 107, 0, 0.12);
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius);
+  flex-shrink: 0;
+}
+
+.pc-mode-banner--field {
+  background: rgba(13, 110, 253, 0.15);
+}
+
+/* ========================================================================= */
+/* 8. FORMULÁRIOS DOS PAINÉIS                                                */
+/* ========================================================================= */
+
+.pc-panel__title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pc-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.pc-panel .form-label,
+.pc-panel .form-check-label {
+  color: var(--pc-text);
+  font-size: 0.9rem;
+}
+
+.pc-panel .form-select {
+  background-color: rgba(0, 0, 0, 0.25);
+  border-color: var(--pc-border);
+  color: var(--pc-text);
+  min-height: var(--pc-touch-min);
+}
+
+.pc-panel .form-check-input {
+  width: 2.5em;
+  height: 1.25em;
+  cursor: pointer;
+}
+
+.pc-panel .form-check-input:checked {
+  background-color: var(--pc-accent);
+  border-color: var(--pc-accent);
+}
+
+.pc-panel .form-switch .form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(255, 107, 0, 0.35);
+}
+
+.pc-auth-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  display: inline-block;
+}
+
+.pc-auth-badge--ok {
+  background: rgba(40, 167, 69, 0.25);
+  color: #8fd9a0;
+}
+
+.pc-auth-badge--warn {
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffe08a;
+}
+
+#street-filter-container {
+  border-top: 1px solid #334155;
+  padding-top: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+#street-filter-container .form-label {
+  color: var(--pc-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+#street-filter option {
+  background-color: var(--pc-bg-panel);
+  color: var(--pc-text);
+}
+
+/* ========================================================================= */
+/* 9. DRAWER (Painel de detalhes)                                            */
+/* ========================================================================= */
+
+#drawer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 0.75rem;
+}
+
+#drawer-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--pc-text);
+  margin: 0;
+}
+
+#drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  color: var(--pc-text-muted);
+}
+
+#drawer.open #drawer-content {
+  color: var(--pc-text);
+}
+
+/* ========================================================================= */
+/* 10. LEGENDAS FLUTUANTES                                                   */
+/* ========================================================================= */
+
+.pc-floating-legend {
+  position: absolute;
+  z-index: 1000;
+  background: rgba(18, 24, 36, 0.9);
+  border: 1px solid rgba(248, 249, 250, 0.15);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  backdrop-filter: blur(8px);
+  max-width: 220px;
+  font-size: 0.75rem;
+}
+
+.pc-legend-materials {
+  bottom: 20px;
+  left: 20px;
+}
+
+.pc-legend-layers {
+  bottom: 20px;
+  right: 20px;
+}
+
+.pc-floating-legend h6 {
+  color: var(--pc-text);
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.9;
+}
+
+.pc-floating-legend .legend-section-title {
+  font-size: 0.65rem;
+  color: var(--pc-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+  opacity: 0.7;
+}
+
+.pc-floating-legend .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 0.25rem;
+  color: var(--pc-text);
+  font-size: 0.72rem;
+}
+
+.pc-floating-legend .legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pc-floating-legend .legend-line {
+  width: 16px;
+  height: 3px;
+  flex-shrink: 0;
+}
+
+/* ========================================================================= */
+/* 11. GESTÃO DE ALERTAS E ZONAS DE RISCO                                    */
+/* ========================================================================= */
+
+.pc-alerts-section {
+  animation: fadeIn 0.3s ease;
+}
+
+.pc-active-alert {
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.15) 0%, rgba(220, 53, 69, 0.05) 100%);
+  border: 2px solid #DC3545;
+  border-radius: 8px;
+  padding: 1rem;
+  position: relative;
+  overflow: hidden;
+  animation: pulse-alert 2s infinite;
+}
+
+.pc-active-alert::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+  animation: shimmer 3s infinite;
+  pointer-events: none;
+}
+
+@keyframes pulse-alert {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.pc-alert-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.pc-alert-icon {
+  font-size: 2rem;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.pc-alert-title {
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  flex: 1;
+}
+
+.pc-alert-badge {
+  background: #DC3545;
+  color: #fff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pc-alert-time {
+  color: var(--pc-text-muted);
+  font-size: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.pc-alert-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.pc-alert-status-icon {
+  color: #FFC107;
+  font-size: 1rem;
+}
+
+.pc-alert-status-text {
+  color: #FFC107;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.pc-risk-zones-panel {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--pc-border);
+  border-radius: 8px;
+}
+
+.pc-risk-counter {
+  padding: 0.5rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.pc-risk-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.pc-risk-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+
+.pc-risk-high .pc-risk-value { color: #DC3545; }
+.pc-risk-medium .pc-risk-value { color: #FFC107; }
+.pc-risk-low .pc-risk-value { color: #28A745; }
+
+.pc-no-alert {
+  background: rgba(40, 167, 69, 0.1);
+  border: 1px solid #28A745;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+
+.pc-no-alert-icon {
+  font-size: 2rem;
+  color: #28A745;
+  margin-bottom: 0.5rem;
+}
+
+.pc-no-alert-text {
+  color: var(--pc-text);
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.pc-no-alert-subtext {
+  color: var(--pc-text-muted);
+  font-size: 0.75rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================================================= */
+/* 12. LISTA DE PENDENTES                                                    */
+/* ========================================================================= */
+
+.pc-pending-item {
+  background-color: var(--pc-bg-panel);
+  color: var(--pc-text);
+  border: 1px solid var(--pc-border);
+  border-left: 4px solid var(--pc-accent);
+  transition: all 0.2s ease;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  width: 100%;
+}
+
+.pc-pending-item:hover {
+  background-color: rgba(255, 107, 0, 0.15);
+  border-left-color: var(--pc-accent);
+  transform: translateX(4px);
+  color: var(--pc-text);
+}
+
+.pc-pending-item.active {
+  background-color: rgba(255, 193, 7, 0.25);
+  border-left-color: #FFC107;
+  border-left-width: 6px;
+}
+
+.pc-pending-item span {
+  font-size: 1.2rem;
+  margin-right: 0.35rem;
+  display: inline-block;
+  cursor: help;
+  transition: transform 0.15s ease;
+}
+
+.pc-pending-item span:hover {
+  transform: scale(1.2);
+  opacity: 0.85;
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.pc-pending-item {
+  animation: slideInLeft 0.3s ease forwards;
+}
+
+#pending-list {
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+#pending-list::-webkit-scrollbar { width: 6px; }
+#pending-list::-webkit-scrollbar-track {
+  background: var(--pc-bg-main);
+  border-radius: 3px;
+}
+#pending-list::-webkit-scrollbar-thumb {
+  background: var(--pc-accent);
+  border-radius: 3px;
+}
+
+/* ========================================================================= */
+/* 13. CLUSTERS                                                              */
+/* ========================================================================= */
+
+.custom-cluster-marker {
+  background: transparent !important;
+}
+
+.cluster-content {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.2);
+  border-width: 4px;
+  border-style: solid;
+}
+
+.cluster-betão .cluster-content {
+  background-color: #0D6EFD;
+  border-color: #052c65;
+}
+
+.cluster-alvenaria .cluster-content {
+  background-color: #FFC107;
+  border-color: #8B6900;
+}
+
+.cluster-madeira .cluster-content {
+  background-color: #DC3545;
+  border-color: #721c24;
+}
+
+.cluster-default .cluster-content {
+  background-color: #6C757D;
+  border-color: #343a40;
+}
+
+.cluster-risk .cluster-content {
+  border-color: #FFC107 !important;
+  border-width: 5px !important;
+  animation: pulse-cluster 2s infinite;
+}
+
+@keyframes pulse-cluster {
+  0%, 100% { box-shadow: 0 3px 8px rgba(0,0,0,0.5); }
+  50% { box-shadow: 0 3px 15px rgba(255, 193, 7, 0.8); }
+}
+
+.custom-marker-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* ========================================================================= */
+/* 14. MOBILE - Bottom Sheets                                                */
+/* ========================================================================= */
+
+.pc-sheet-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+.pc-fab {
+  position: fixed;
+  right: 1rem;
+  z-index: 1100;
+  width: var(--pc-touch-min);
+  height: var(--pc-touch-min);
+  min-width: var(--pc-touch-min);
+  min-height: var(--pc-touch-min);
+  border-radius: 50%;
+  background-color: var(--pc-accent);
+  color: #1a1a1a;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  cursor: pointer;
+  margin: 0;
+}
+
+.pc-fab-filters { bottom: 5.5rem; }
+.pc-fab-details { bottom: 1rem; }
+
+.pc-sheet-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1040;
+  cursor: pointer;
+}
+
+@media (max-width: 767px) {
+  body.pc-operational main.container-fluid {
+    height: 100vh;
+    max-height: 100vh;
+  }
+
+  body.pc-operational .navbar {
+    display: none;
+  }
+
+  .pc-app-frame {
+    padding: 0;
+    gap: 0;
+  }
+
+  .pc-map-layout {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .pc-panel-left,
+  .pc-panel-right {
+    display: flex !important;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 60vh;
+    max-height: 60vh;
+    z-index: 1050;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    border-radius: 12px 12px 0 0;
+    border: 1px solid var(--pc-border);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .pc-map-column {
+    flex: 1;
+    width: 100%;
+    border-radius: 0;
+  }
+
+  #map-container {
+    min-height: 100vh;
+  }
+
+  #pc-toggle-filters:checked ~ .pc-map-layout .pc-panel-left {
+    transform: translateY(0);
+  }
+
+  #pc-toggle-details:checked ~ .pc-map-layout .pc-panel-right {
+    transform: translateY(0);
+  }
+
+  #pc-toggle-filters:checked ~ label.pc-sheet-backdrop--filters,
+  #pc-toggle-details:checked ~ label.pc-sheet-backdrop--details {
+    display: block;
+  }
+
+  #drawer.open {
+    z-index: 1060;
+  }
+}
+
+@media (min-width: 768px) {
+  .pc-fab,
+  .pc-sheet-backdrop {
+    display: none !important;
+  }
+}
+
+/* ========================================================================= */
+/* 15. PÁGINAS AUXILIARES (Registo, Login, etc.)                             */
+/* ========================================================================= */
+
+body.pc-registo-page {
+  background-color: var(--pc-bg-main);
+  overflow-y: auto;
+  height: auto;
+}
+
+body.pc-registo-page main.container-fluid {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  padding: 1rem;
+}
+
+.pc-registo-wrap {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.pc-registo-header { padding: 1rem; }
+.pc-registo-form { padding: 1.25rem; }
+
+.pc-input,
+.pc-registo-form .form-control {
+  background-color: rgba(0, 0, 0, 0.25);
+  border-color: var(--pc-border);
+  color: var(--pc-text);
+  min-height: var(--pc-touch-min);
+}
+
+.pc-input:focus,
+.pc-registo-form .form-control:focus {
+  background-color: rgba(0, 0, 0, 0.35);
+  border-color: var(--pc-accent);
+  color: var(--pc-text);
+  box-shadow: 0 0 0 0.2rem rgba(255, 107, 0, 0.25);
+}
+
+/* ========================================================================= */
+/* 16. FICHA TÉCNICA (Página dedicada)                                       */
+/* ========================================================================= */
+
+/* Override específico para a página da ficha */
+body:has(.pc-ficha-header) {
+  overflow-y: auto !important;
+  height: auto !important;
+}
+
+body:has(.pc-ficha-header) main.container-fluid {
+  height: auto !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  padding-top: 1rem !important;
+  padding-bottom: 2rem !important;
+}
+
+body:has(.pc-ficha-header) .pc-app-frame {
+  height: auto !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+
+body:has(.pc-ficha-header) .pc-map-layout {
+  display: block !important;
+  overflow: visible !important;
+}
+
+.pc-ficha-header {
+  background: linear-gradient(135deg, rgba(255, 107, 0, 0.1) 0%, rgba(255, 107, 0, 0.05) 100%);
+  border: 1px solid var(--pc-border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto 1.5rem;
+}
+
+/* Ficha - Container */
+body:has(.pc-ficha-header) .container-fluid {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+body:has(.pc-ficha-header) .container-fluid > .row {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Ficha - Componentes */
+.pc-ficha-tecnica {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.pc-ficha-tecnica h6 {
+  border-bottom: 2px solid var(--pc-accent);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.pc-ficha-tecnica .mb-2 {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--pc-border);
+}
+
+.pc-ficha-tecnica .pc-text-small {
+  font-size: 0.85rem;
+  color: var(--pc-text-muted);
+}
+
+/* Mini-mapa da ficha */
+#mini-map {
+  height: 250px !important;
+  min-height: 250px !important;
+  width: 100% !important;
+  border-radius: 8px;
+}
+
+/* QR Code */
+#qrcode {
+  width: 150px !important;
+  height: 150px !important;
+  min-width: 150px !important;
+  min-height: 150px !important;
+  max-width: 150px !important;
+  max-height: 150px !important;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#qrcode img {
+  max-width: 150px !important;
+  max-height: 150px !important;
+}
+
+/* Placeholder de foto */
+.pc-photo-placeholder {
+  width: 100%;
+  height: 180px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px dashed var(--pc-border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.pc-photo-empty {
+  text-align: center;
+  color: var(--pc-text-muted);
+}
+
+.pc-photo-empty i {
+  font-size: 3rem;
+  opacity: 0.4;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.pc-photo-empty p {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+/* Checkboxes da ficha */
+.form-check-input[type="checkbox"] {
+  width: 1.5em;
+  height: 1.5em;
+  cursor: pointer;
+  margin-right: 0.5rem;
+}
+
+.form-check-label {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ========================================================================= */
+/* 17. MODO IMPRESSÃO                                                        */
+/* ========================================================================= */
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .pc-panel {
+    background: white !important;
+    border: 1px solid #ddd !important;
+    page-break-inside: avoid;
+  }
+  
+  .pc-text, .pc-text-muted {
+    color: black !important;
+  }
+  
+  .btn, #btn-edit, #btn-save, #btn-cancel, #btn-print, #btn-add-photo {
+    display: none !important;
+  }
+  
+  #mini-map {
+    height: 200px !important;
+  }
+  
+  .pc-ficha-header {
+    background: #f8f9fa !important;
+    border: 2px solid #333 !important;
+  }
+  
+  @page {
+    margin: 1cm;
+    size: A4;
+  }
+}

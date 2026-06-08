@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>SIG-Aldeias | Dashboard</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="css/wireframe.css">
+</head>
+<body>
+
+    <div id="map-container"></div>
+
+    <div class="ui-panel panel-right">
+        <h3>🚨 Alertas</h3>
+        <div class="priority-critical" onclick="abrirDetalhe('Família Silva')">
+            <strong>Família Silva</strong>
+        </div>
+    </div>
+
+    <div id="drawer" class="drawer">
+        <h2 id="drawer-title">Detalhe</h2>
+        <div id="drawer-content"></div>
+        <button class="wf-btn" onclick="fecharDrawer()">Fechar</button>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/map-logic.js"></script>
+</body>
+</html>

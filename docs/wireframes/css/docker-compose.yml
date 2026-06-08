@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  db:
+    image: postgis/postgis:15-3.4
+    container_name: sig_aldeias_db
+    environment:
+      POSTGRES_DB: sig_aldeias
+      POSTGRES_USER: sig_user
+      POSTGRES_PASSWORD: sig_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sig_network
+
+  api:
+    build: .
+    container_name: sig_aldeias_api
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://sig_user:sig_pass@db:5432/sig_aldeias
+      SECRET_KEY: dev-secret-key-change-me
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    networks:
+      - sig_network
+
+volumes:
+  postgres_data:
+networks:
+  sig_network:

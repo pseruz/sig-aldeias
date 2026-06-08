@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <h2 class="pc-text mb-4"><i class="bi bi-file-earmark-bar-graph me-2"></i>Central de Relatórios</h2>
+
+    <div class="row g-4">
+        <!-- Exportar CSV -->
+        <div class="col-md-6 col-lg-4">
+            <div class="pc-panel p-4 h-100 d-flex flex-column">
+                <div class="pc-text mb-2"><i class="bi bi-filetype-csv fs-1"></i></div>
+                <h5 class="pc-text fw-bold">Exportar CSV</h5>
+                <p class="pc-text-muted small flex-grow-1">Dados brutos de todos os agregados para análise em Excel/Sheets.</p>
+                <a href="/reports/export/csv" class="btn pc-btn-critical w-100 mt-3" download>
+                    <i class="bi bi-download me-2"></i>Baixar CSV
+                </a>
+            </div>
+        </div>
+
+        <!-- Exportar PDF -->
+        <div class="col-md-6 col-lg-4">
+            <div class="pc-panel p-4 h-100 d-flex flex-column">
+                <div class="pc-text mb-2"><i class="bi bi-filetype-pdf fs-1"></i></div>
+                <h5 class="pc-text fw-bold">Relatório PDF</h5>
+                <p class="pc-text-muted small flex-grow-1">Resumo operacional formatado para impressão e arquivo.</p>
+                <a href="/reports/export/pdf" class="btn pc-btn-critical w-100 mt-3" download>
+                    <i class="bi bi-download me-2"></i>Baixar PDF
+                </a>
+            </div>
+        </div>
+
+        <!-- Estatísticas Rápidas -->
+        <div class="col-md-6 col-lg-4">
+            <div class="pc-panel p-4 h-100 d-flex flex-column">
+                <div class="pc-text mb-2"><i class="bi bi-bar-chart-fill fs-1"></i></div>
+                <h5 class="pc-text fw-bold">Estatísticas Rápidas</h5>
+                <p class="pc-text-muted small flex-grow-1">Total de registos e taxa de validação atual.</p>
+                <div class="mt-auto pt-3 border-top border-secondary">
+                    <div class="d-flex justify-content-between pc-text small">
+                        <span>Registos Totais:</span>
+                        <span id="stat-total">Carregando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Carrega estatísticas simples da API
+async function loadStats() {
+    try {
+        const res = await fetch('/reports/summary', { headers: window.getAuthHeaders?.() || {} });
+        if (res.ok) {
+            const data = await res.json();
+            document.getElementById('stat-total').textContent = data.total || '0';
+        }
+    } catch (e) { console.error('Erro ao carregar stats', e); }
+}
+document.addEventListener('DOMContentLoaded', loadStats);
+</script>
+{% endblock %}

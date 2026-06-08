@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha - SIG-Aldeias Wireframe</title>
+    <link rel="stylesheet" href="css/wireframe.css">
+</head>
+<body>
+    <div class="wireframe-container">
+        <div class="header">
+            <h1>.SIG-Aldeias - Ficha Técnica</h1>
+        </div>
+        
+        <div class="nav-links">
+            <a href="index.html">← Voltar</a>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="mapa.html">Mapa</a>
+            <a href="registo.html">Registo</a>
+        </div>
+
+        <div class="wf-section">
+            <h2>Ficha Técnica do Agregado Selecionado</h2>
+            <p>Detalhe operacional com inteligência de apoio à decisão (TEE, saídas de emergência).</p>
+        </div>
+
+        <div class="priority-critical">
+            <h3>🔴 Família Silva - PRIORIDADE CRÍTICA</h3>
+            <p><strong>Localização:</strong> Rua das Oliveiras, Arganil</p>
+        </div>
+
+        <div class="wf-grid">
+            <div class="wf-card">
+                <h3>👥 Identificação</h3>
+                <div style="margin-top: 10px;">
+                    <p><strong>Nome:</strong> Família Silva</p>
+                    <p><strong>Número de Pessoas:</strong> 4</p>
+                    <p><strong>Perfis de Risco:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 5px;">
+                        <li>Idosos: 2 pessoas</li>
+                        <li>Crianças: 0</li>
+                        <li>Mobilidade Reduzida: Sim</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="wf-card">
+                <h3>🏗️ Estrutura</h3>
+                <div style="margin-top: 10px;">
+                    <p><strong>Material:</strong> Madeira</p>
+                    <p><strong>Número de Pisos:</strong> 2</p>
+                    <p><strong>Status:</strong> Validado</p>
+                    <p><strong>Data Validação:</strong> 02 Abr 2026</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="wf-card" style="margin-top: 20px;">
+            <h3>🧠 INTELIGÊNCIA OPERACIONAL</h3>
+            <div class="wf-grid">
+                <div style="padding: 15px; background: rgba(217, 4, 41, 0.1); border-radius: 6px;">
+                    <h4 style="color: var(--accent-red); margin-bottom: 10px;">⏱️ Tempo Estimado de Evacuação (TEE)</h4>
+                    <p style="font-size: 1.2rem; font-weight: bold; color: var(--accent-red);">8 min 30 seg</p>
+                    <small>Calculado com base em perfis de mobilidade (Idosos = 0.6 m/s)</small>
+                </div>
+                
+                <div style="padding: 15px; background: rgba(46, 196, 182, 0.1); border-radius: 6px;">
+                    <h4 style="color: var(--accent-green); margin-bottom: 10px;">📍 Ponto de Encontro</h4>
+                    <p style="font-size: 1.1rem; font-weight: bold; color: var(--accent-green);">Campo Futebol</p>
+                    <small>Distância: 450m do edifício</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="wf-card" style="margin-top: 20px;">
+            <h3>🔧 MICRO-DETALHES (Infraestrutura)</h3>
+            <div class="wf-grid">
+                <div>
+                    <h4>Água/Gás</h4>
+                    <p>Corte Água/Gás: Lado Norte (Painel Principal)</p>
+                </div>
+                <div>
+                    <h4>Eletricidade</h4>
+                    <p>Disjuntor Geral: Cave</p>
+                </div>
+                <div>
+                    <h4>SAÍDAS DE EMERGÊNCIA</h4>
+                    <p>Saída recomendada: Porta traseira (menos exposta ao incêndio)</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; text-align: right;">
+            <button class="wf-btn">← Voltar ao Mapa</button>
+            <button class="wf-btn wf-btn--warning">Editar Registo</button>
+            <button class="wf-btn wf-btn--danger">Marcar como Emergência</button>
+        </div>
+    </div>
+</body>
+</html>

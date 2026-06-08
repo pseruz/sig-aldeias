@@ -1,0 +1,7 @@
+
+[0;34m════════════════════════════════════════[0m
+[0;34m  SIG-Aldeias — Validação Completa v0.2.2[0m
+[0;34m════════════════════════════════════════[0m
+
+[0;34m[INFO][0m Verificar se o servidor está ativo...
+[0;31m[FAIL][0m Servidor não responde em http://127.0.0.1:8000

@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+
+# Base de dados (NÃO incluir no Git)
+data/*.db
+*.sqlite3
+
+# Logs
+uvicorn.log
+*.log
+
+# Ambiente
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.fuse_hidden*
+
+# R/RStudio
+.Rhistory
+.RData
+.Rproj.user/
+
+# Node
+node_modules/
+
+# Backups antigos
+sig-aldeias_broken/
+sig-aldeias_BACKUP_*/
+
+# Testes temporários
+teste*.csv
+teste*.pdf
