@@ -4,16 +4,31 @@
 {% block main_class %}p-0{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-<!-- ✅ Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""/>
-<!-- ✅ Leaflet MarkerCluster CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-{% endblock %}
 
+<style>
+    /* 📌 Mantemos apenas as customizações dos contadores de risco. 
+       Tudo o resto (Mapas e Legendas) foi centralizado com sucesso no style.css! */
+    .pc-risk-counter {
+        border-radius: 6px;
+        padding: 6px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    .pc-risk-high { background-color: rgba(220, 53, 69, 0.15); border-color: rgba(220, 53, 69, 0.4); }
+    .pc-risk-medium { background-color: rgba(255, 193, 7, 0.15); border-color: rgba(255, 193, 7, 0.4); }
+    .pc-risk-low { background-color: rgba(25, 135, 84, 0.15); border-color: rgba(25, 135, 84, 0.4); }
+    
+    .pc-risk-value { font-size: 16px; font-weight: bold; }
+    .pc-risk-high .pc-risk-value { color: #ff5c5c; }
+    .pc-risk-medium .pc-risk-value { color: #ffd043; }
+    .pc-risk-low .pc-risk-value { color: #4cd964; }
+    .pc-risk-label { font-size: 10px; text-transform: uppercase; color: var(--pc-text-muted); font-weight: bold; }
+</style>
+{% endblock %}
 
 {% block content %}
 <input type="checkbox" id="pc-toggle-filters" class="pc-sheet-input" aria-hidden="true" tabindex="-1">
@@ -21,53 +36,51 @@
 <label for="pc-toggle-filters" class="pc-sheet-backdrop pc-sheet-backdrop--filters d-md-none" aria-hidden="true"></label>
 <label for="pc-toggle-details" class="pc-sheet-backdrop pc-sheet-backdrop--details d-md-none" aria-hidden="true"></label>
 
-<!-- ✅ MOLDURA PRINCIPAL DA APLICAÇÃO (Bento Box) -->
 <div id="map-page-root" class="pc-app-frame" data-pc-mode="{{ mode | default('command') }}">
 
     {% if mode == 'field' %}
-    <div class="pc-mode-banner pc-mode-banner--field">
-        <span class="pc-text">Modo Campo</span>
-        <a href="/registo" class="btn btn-sm btn-outline-light">+ Novo registo</a>
-        <a href="/dashboard" class="btn btn-sm pc-btn-critical">Central de Comando</a>
+    <div class="pc-mode-banner pc-mode-banner--field px-3">
+        <span class="pc-text small fw-bold text-info"><i class="bi bi-geo-alt-fill me-1"></i>MODO CAMPO ATIVO</span>
+        <div class="d-flex gap-2">
+            <a href="/registo" class="btn btn-xs btn-outline-light px-2 py-1 small" style="font-size: 11px;">+ Novo Registo</a>
+            <a href="/dashboard" class="btn btn-xs pc-btn-critical px-2 py-1 small" style="font-size: 11px;">Central de Comando</a>
+        </div>
     </div>
     {% else %}
-    <div class="pc-mode-banner pc-mode-banner--command d-none d-md-flex">
-        <span class="pc-text">Central de Comando — Validação Operacional</span>
-        <a href="/registo" class="btn btn-sm btn-outline-light">Registo em campo</a>
+    <div class="pc-mode-banner pc-mode-banner--command px-3">
+        <span class="pc-text small fw-bold text-warning"><i class="bi bi-hdd-network-fill me-1"></i>Central de Comando — Monitorização e Validação Operacional</span>
+        <a href="/map" class="btn btn-sm btn-outline-light py-0 px-2 fw-semibold text-white" style="font-size: 11px;">Simular Modo Campo</a>
     </div>
-    {% endif %}
+    {% endif %}    
 
-    <div id="map-submitted-alert" class="alert alert-success d-none mx-2 mt-2" role="alert">
-        Agregado submetido ✅ — aguarda validação na central.
+    <div id="map-submitted-alert" class="alert alert-success d-none mx-2 mt-2 py-2" role="alert" style="font-size: 13px;">
+        <i class="bi bi-check-circle-fill me-1"></i> Agregado submetido com sucesso — aguarda validação na central.
     </div>
 
-    <!-- ✅ LAYOUT DE 3 COLUNAS (Flexbox) -->
     <div class="pc-map-layout">
 
-        <!-- ================================================================== -->
-        <!-- PAINEL ESQUERDO: FILTROS                                           -->
-        <!-- ================================================================== -->
-        <aside class="pc-panel pc-panel-left d-none d-md-flex flex-column" id="panel-filters" aria-label="Filtros do mapa">
-            <!-- ✅ Handle de redimensionamento -->
+        <aside class="pc-panel pc-panel-left d-none d-md-flex flex-column p-3" id="panel-filters" aria-label="Filtros do mapa">
             <div class="pc-resize-handle" data-resize="left"></div>
             
-            <p class="pc-panel__title pc-text mb-0">Filtros de Visualização</p>
-            <div id="auth-section" class="pc-auth-badge mb-2" role="status"></div>
+            <p class="pc-panel__title pc-text fw-bold mb-2 pb-1 border-bottom border-secondary small text-uppercase" style="letter-spacing: 0.5px;">
+                <i class="bi bi-funnel-fill me-1 text-warning"></i> Filtros de Visualização
+            </p>
+            <div id="auth-section" class="pc-auth-badge mb-3 text-center small rounded py-1" role="status" style="background: rgba(0,0,0,0.15);"></div>
 
-            <div class="mb-3">
-                <label class="form-label" for="filter-status">Estado</label>
-                <select class="form-select form-select-sm" id="filter-status" name="status">
-                    <option value="">Todos</option>
-                    <option value="pendente">Pendente</option>
-                    <option value="validado">Validado</option>
+            <div class="mb-2">
+                <label class="form-label pc-text-muted small fw-bold mb-1" for="filter-status">Estado do Registo</label>
+                <select class="form-select form-select-sm pc-input" id="filter-status" name="status">
+                    <option value="">Todos os Estados</option>
+                    <option value="pendente">Pendente de Validação</option>
+                    <option value="validado">Validado / Seguro</option>
                     <option value="rejeitado">Rejeitado</option>
                 </select>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label" for="filter-material">Material Estrutural</label>
-                <select class="form-select form-select-sm" id="filter-material" name="material">
-                    <option value="">Todos</option>
+            <div class="mb-2">
+                <label class="form-label pc-text-muted small fw-bold mb-1" for="filter-material">Material Estrutural</label>
+                <select class="form-select form-select-sm pc-input" id="filter-material" name="material">
+                    <option value="">Todos os Materiais</option>
                     <option value="betão">Betão</option>
                     <option value="alvenaria">Alvenaria</option>
                     <option value="madeira">Madeira</option>
@@ -75,8 +88,8 @@
             </div>
 
             <div class="mb-3" id="street-filter-container">
-                <label class="form-label" for="street-filter">Rua / Via</label>
-                <select class="form-select form-select-sm" id="street-filter" name="street">
+                <label class="form-label pc-text-muted small fw-bold mb-1" for="street-filter">Rua / Via de Acesso</label>
+                <select class="form-select form-select-sm pc-input" id="street-filter" name="street">
                     <option value="">Selecionar Rua</option>
                     <option value="rua_principal">Rua Principal</option>
                     <option value="rua_igreja">Rua da Igreja</option>
@@ -84,146 +97,144 @@
                 </select>
             </div>
 
-            <div class="form-check form-switch mb-2">
-                <input class="form-check-input" type="checkbox" id="filter-elderly" name="has_elderly">
-                <label class="form-check-label" for="filter-elderly">Com idosos</label>
-            </div>
-            <div class="form-check form-switch mb-2">
-                <input class="form-check-input" type="checkbox" id="filter-children" name="has_children">
-                <label class="form-check-label" for="filter-children">Com crianças</label>
-            </div>
-            <div class="form-check form-switch mb-2">
-                <input class="form-check-input" type="checkbox" id="filter-mobility" name="has_mobility_issues">
-                <label class="form-check-label" for="filter-mobility">Mobilidade reduzida</label>
-            </div>
-
-            <p class="pc-panel__title pc-text mt-2 mb-1">Camadas Operacionais</p>
-            <div class="form-check form-switch mb-2">
-                <input class="form-check-input" type="checkbox" id="toggle-fire" name="fire_zones">
-                <label class="form-check-label" for="toggle-fire">🔥 Manchas de Incêndio</label>
-            </div>
-            <div class="form-check form-switch mb-2">
-                <input class="form-check-input" type="checkbox" id="toggle-flood" name="flood_zones">
-                <label class="form-check-label" for="toggle-flood">🌊 Zonas de Cheias</label>
-            </div>
-            <div class="form-check form-switch mb-2">
-                <input class="form-check-input" type="checkbox" id="toggle-forest" name="forest_zones">
-                <label class="form-check-label" for="toggle-forest">🌲 Zonas Florestais</label>
-            </div>
-            <div class="form-check form-switch mb-2">
-                <input class="form-check-input" type="checkbox" id="toggle-evacuation" name="evacuation_routes">
-                <label class="form-check-label" for="toggle-evacuation">🛣️ Rotas de Evacuação</label>
-            </div>
-            <div class="form-check form-switch mb-3">
-                <input class="form-check-input" type="checkbox" id="toggle-risk" name="risk_zones">
-                <label class="form-check-label" for="toggle-risk">⚠️ Zonas de Risco</label>
+            <div class="p-2 rounded mb-3" style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03);">
+                <div class="form-check form-switch mb-1">
+                    <input class="form-check-input" type="checkbox" id="filter-elderly" name="has_elderly">
+                    <label class="form-check-label pc-text small" for="filter-elderly">👵 Com idosos (>65)</label>
+                </div>
+                <div class="form-check form-switch mb-1">
+                    <input class="form-check-input" type="checkbox" id="filter-children" name="has_children">
+                    <label class="form-check-label pc-text small" for="filter-children">👶 Com crianças (<12)</label>
+                </div>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="filter-mobility" name="has_mobility_issues">
+                    <label class="form-check-label pc-text small" for="filter-mobility">♿ Mobilidade reduzida</label>
+                </div>
             </div>
 
-            <button type="button" class="btn pc-btn-critical w-100" id="btn-refresh-map">Atualizar mapa</button>
-            <button type="button" class="btn btn-outline-light w-100 mt-2 d-none" id="btn-load-pending">Ver pendentes</button>
+            <p class="pc-panel__title pc-text fw-bold mb-2 pb-1 border-bottom border-secondary small text-uppercase" style="letter-spacing: 0.5px;">
+                <i class="bi bi-layers-half me-1 text-info"></i> Camadas Operacionais
+            </p>
+            
+            <div class="p-2 rounded mb-3" style="background: rgba(0,0,0,0.15);">
+                <div class="form-check form-switch mb-1">
+                    <input class="form-check-input" type="checkbox" id="toggle-fire" name="fire_zones">
+                    <label class="form-check-label pc-text small" for="toggle-fire">🔥 Manchas de Incêndio</label>
+                </div>
+                <div class="form-check form-switch mb-1">
+                    <input class="form-check-input" type="checkbox" id="toggle-flood" name="flood_zones">
+                    <label class="form-check-label pc-text small" for="toggle-flood">🌊 Zonas de Cheias</label>
+                </div>
+                <div class="form-check form-switch mb-1">
+                    <input class="form-check-input" type="checkbox" id="toggle-forest" name="forest_zones">
+                    <label class="form-check-label pc-text small" for="toggle-forest">🌲 Zonas Florestais</label>
+                </div>
+                <div class="form-check form-switch mb-1">
+                    <input class="form-check-input" type="checkbox" id="toggle-evacuation" name="evacuation_routes">
+                    <label class="form-check-label pc-text small" for="toggle-evacuation">🛣️ Rotas de Evacuação</label>
+                </div>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="toggle-risk" name="risk_zones">
+                    <label class="form-check-label pc-text small" for="toggle-risk">⚠️ Zonas de Risco Climatérico</label>
+                </div>
+            </div>
+
+            <div class="mt-auto d-flex flex-column gap-2">
+                <button type="button" class="btn pc-btn-critical w-100 fw-bold btn-sm text-uppercase py-2" id="btn-refresh-map">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Atualizar mapa
+                </button>
+                <button type="button" class="btn btn-outline-light w-100 btn-sm text-uppercase text-white d-none" id="btn-load-pending">
+                    Ver pendentes
+                </button>
+            </div>
         </aside>
 
-        <!-- ================================================================== -->
-        <!-- COLUNA CENTRAL: MAPA                                               -->
-        <!-- ================================================================== -->
         <section class="pc-map-column position-relative" aria-label="Mapa operacional">
             <div id="map-container" role="application" aria-label="Mapa Leaflet SIG-Aldeias"></div>
             
-            <!-- ✅ CAIXA 1: Materiais e Estados (canto inferior esquerdo) -->
             <div class="pc-floating-legend pc-legend-materials d-none d-md-block">
-                <h6><i class="bi bi-geo-alt-fill me-1"></i>Agregados</h6>
+                <h6><i class="bi bi-geo-alt-fill text-danger me-1"></i>Matriz de Edifícios</h6>
                 
-                <div class="legend-section-title">Materiais</div>
+                <div class="legend-section-title">Materiais Estruturais</div>
                 <div class="legend-item">
-                    <span class="legend-color" style="background: #0D6EFD; border: 2px solid #052c65;"></span>
-                    Betão
+                    <span class="legend-color" style="background: #0D6EFD; border: 1px solid rgba(255,255,255,0.2);"></span>
+                    Betão Armado
                 </div>
                 <div class="legend-item">
-                    <span class="legend-color" style="background: #FFC107; border: 2px solid #8B6900;"></span>
-                    Alvenaria
+                    <span class="legend-color" style="background: #FFC107; border: 1px solid rgba(255,255,255,0.2);"></span>
+                    Alvenaria Tradicional
                 </div>
                 <div class="legend-item">
-                    <span class="legend-color" style="background: #DC3545; border: 2px solid #721c24;"></span>
-                    Madeira
+                    <span class="legend-color" style="background: #DC3545; border: 1px solid rgba(255,255,255,0.2);"></span>
+                    Estruturas de Madeira
                 </div>
                 
-                <div class="legend-section-title">Estados</div>
+                <div class="legend-section-title">Indicadores de Risco</div>
                 <div class="legend-item">
-                    <span class="legend-color" style="border: 3px solid #FFC107; background: transparent;"></span>
-                    Pendente
+                    <span class="legend-color" style="border: 2px dashed #FFC107; background: transparent; height: 10px; width: 10px;"></span>
+                    Registo Pendente
                 </div>
                 <div class="legend-item">
-                    <span class="legend-color" style="border: 2px solid #FFC107; background: transparent;"></span>
-                    Vulnerável
+                    <span class="legend-color" style="border: 2px solid #DC3545; background: rgba(220,53,69,0.2); height: 10px; width: 10px;"></span>
+                    Vulnerabilidade Crítica
                 </div>
             </div>
             
-            <!-- ✅ CAIXA 2: Camadas operacionais (canto inferior direito) -->
             <div class="pc-floating-legend pc-legend-layers d-none d-md-block">
-                <h6><i class="bi bi-layers me-1"></i>Camadas</h6>
+                <h6><i class="bi bi-layers-half text-info me-1"></i>Camadas Ativas</h6>
                 
                 <div class="legend-item">
-                    <span class="legend-color" style="background: #DC3545; opacity: 0.6;"></span>
-                     Incêndio
+                    <span class="legend-color" style="background: #DC3545; opacity: 0.4;"></span>
+                    Frente de Incêndio Active
                 </div>
                 <div class="legend-item">
-                    <span class="legend-color" style="background: #0D6EFD; opacity: 0.6;"></span>
-                    🌊 Cheias
+                    <span class="legend-color" style="background: #0D6EFD; opacity: 0.4;"></span>
+                    Leito de Cheias Histórico
                 </div>
                 <div class="legend-item">
-                    <span class="legend-color" style="background: #228B22; opacity: 0.6;"></span>
-                    🌲 Floresta
+                    <span class="legend-color" style="background: #228B22; opacity: 0.4;"></span>
+                    Mancha Florestal Contígua
                 </div>
                 <div class="legend-item">
-                    <span class="legend-line" style="background: #0D6EFD;"></span>
-                    🛣️ Rota evacuação
+                    <span class="legend-line" style="background: #0D6EFD; height: 3px; width: 14px; display: inline-block;"></span>
+                    Corredor de Evacuação Emergência
                 </div>
                 <div class="legend-item">
-                    <span class="legend-color" style="background: #DC3545; opacity: 0.3;"></span>
-                    ⚠️ Zona de risco
+                    <span class="legend-color" style="background: #DC3545; opacity: 0.15; border: 1px dashed rgba(220,53,69,0.5);"></span>
+                    Zona Geográfica Protelada (Risco)
                 </div>
             </div>
             
             <label for="pc-toggle-filters" class="pc-fab pc-fab-filters d-md-none" title="Filtros" aria-label="Abrir filtros">
-                <span aria-hidden="true">🔽</span>
+                <span aria-hidden="true"><i class="bi bi-filter"></i></span>
             </label>
             <label for="pc-toggle-details" class="pc-fab pc-fab-details d-md-none" title="Validação" aria-label="Abrir validação">
-                <span aria-hidden="true">📋</span>
+                <span aria-hidden="true"><i class="bi bi-clipboard-data"></i></span>
             </label>
         </section>
 
-        <!-- ================================================================== -->
-        <!-- PAINEL DIREITO: ALERTAS + VALIDAÇÃO                                -->
-        <!-- ================================================================== -->
-        <aside class="pc-panel pc-panel-right d-none d-md-flex flex-column" id="validation-panel" aria-label="Validação de dados técnicos">
-            <!-- ✅ Handle de redimensionamento -->
+        <aside class="pc-panel pc-panel-right d-none d-md-flex flex-column p-3" id="validation-panel" aria-label="Validação de dados técnicos">
             <div class="pc-resize-handle" data-resize="right"></div>
             
-            <!-- ============================================================ -->
-            <!-- SECÇÃO 1: GESTÃO DE ALERTAS E ZONAS DE RISCO (FIXO)          -->
-            <!-- ============================================================ -->
-            <div class="pc-alerts-section mb-3" id="alerts-section">
-                <h5 class="pc-text fw-bold mb-2 d-flex align-items-center">
-                    <i class="bi bi-exclamation-triangle-fill me-2" style="color: #FFC107;"></i>
-                    Gestão de Alertas e Zonas de Risco
-                    <span class="pc-text-muted small ms-auto">(Tempo Real)</span>
+            <div class="pc-alerts-section mb-2" id="alerts-section">
+                <h5 class="pc-text fw-bold mb-2 d-flex align-items-center small text-uppercase" style="letter-spacing: 0.5px; font-size: 12px;">
+                    <i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>
+                    Gestão de Alertas Globais
+                    <span class="pc-text-muted small ms-auto" style="font-size: 9px; font-weight: normal;">(Tempo Real)</span>
                 </h5>
                 
-                <!-- Alerta Ativo -->
                 <div id="active-alert-container" class="mb-3">
-                    <!-- Preenchido via JavaScript -->
-                </div>
+                    </div>
                 
-                <!-- Zonas de Risco -->
-                <div class="pc-risk-zones-panel pc-panel p-2">
-                    <h6 class="pc-text small fw-bold mb-2">
-                        <i class="bi bi-info-circle me-1"></i>Zonas de Risco
+                <div class="p-2 rounded" style="background: rgba(0,0,0,0.15); border: 1px solid var(--pc-border-color);">
+                    <h6 class="pc-text small fw-bold mb-2" style="font-size: 11px;">
+                        <i class="bi bi-shield-slash me-1 text-muted"></i>Severidade Climatérica Local
                     </h6>
                     <div class="row g-2 text-center">
                         <div class="col-4">
                             <div class="pc-risk-counter pc-risk-high">
                                 <div class="pc-risk-value" id="risk-high-count">0</div>
-                                <div class="pc-risk-label">Alta</div>
+                                <div class="pc-risk-label">Crítica</div>
                             </div>
                         </div>
                         <div class="col-4">
@@ -235,28 +246,32 @@
                         <div class="col-4">
                             <div class="pc-risk-counter pc-risk-low">
                                 <div class="pc-risk-value" id="risk-low-count">0</div>
-                                <div class="pc-risk-label">Baixa</div>
+                                <div class="pc-risk-label">Instável</div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <hr class="border-secondary my-3">
+            <hr class="border-secondary my-3" style="opacity: 0.2;">
             
-            <!-- ============================================================ -->
-            <!-- SECÇÃO 2: VALIDAÇÃO DE DADOS TÉCNICOS (DINÂMICO)             -->
-            <!-- ============================================================ -->
-            <div id="validation-drawer-container">
-                <p class="pc-panel__title pc-text mb-0">Validação de Dados Técnicos</p>
+            <div id="validation-drawer-container" class="flex-grow-1 d-flex flex-column">
+                <p class="pc-panel__title pc-text fw-bold mb-2 pb-1 border-bottom border-secondary small text-uppercase" style="letter-spacing: 0.5px;">
+                    <i class="bi bi-patch-check-fill me-1 text-success"></i> Validação Técnica
+                </p>
 
-                <div id="drawer">
-                    <h2 id="drawer-title" class="pc-text h6">Selecione um agregado pendente</h2>
-                    <div id="drawer-content">
-                        <p class="mb-0">Clique num marcador com estado <strong>pendente</strong> para validar ou rejeitar.</p>
+                <div id="drawer" class="d-flex flex-column flex-grow-1">
+                    <h2 id="drawer-title" class="pc-text h6 fw-bold mb-2 text-info" style="font-size: 13px;">Selecione um agregado pendente</h2>
+                    
+                    <div id="drawer-content" class="flex-grow-1 p-3 rounded small text-center d-flex flex-column justify-content-center" style="background: rgba(0,0,0,0.15); border: 1px dashed var(--pc-border-color); min-height: 120px;">
+                        <p class="mb-0 pc-text-muted">
+                            <i class="bi bi-cursor-fill d-block fs-3 mb-2 text-secondary"></i>
+                            Clique num marcador geométrico com estado <strong class="text-warning">pendente</strong> para auditar, validar ou rejeitar os dados técnicos.
+                        </p>
                     </div>
-                    <button type="button" class="btn btn-outline-light w-100 mt-2" id="btn-close-drawer" onclick="fecharDrawer()">
-                        Fechar painel
+                    
+                    <button type="button" class="btn btn-outline-light w-100 mt-3 btn-sm text-white fw-bold text-uppercase" id="btn-close-drawer" onclick="fecharDrawer()">
+                        Fechar Painel Lateral
                     </button>
                 </div>
             </div>
@@ -265,23 +280,22 @@
     </div>
 </div>
 
-<!-- ================================================================== -->
-<!-- MODAL DE REJEIÇÃO                                                  -->
-<!-- ================================================================== -->
 <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content pc-panel">
-            <div class="modal-header border-secondary">
-                <h5 class="modal-title pc-text" id="rejectModalLabel">Rejeitar agregado</h5>
+        <div class="modal-content pc-panel" style="background-color: var(--pc-bg-panel, #111a2e); border: 1px solid var(--pc-accent, #ff4a4a);">
+            <div class="modal-header border-secondary py-2 px-3">
+                <h5 class="modal-title pc-text h6 fw-bold" id="rejectModalLabel">
+                    <i class="bi bi-x-octagon-fill text-danger me-2"></i>Rejeitar Emissão de Registo
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
-            <div class="modal-body">
-                <label class="form-label pc-text" for="reject-reason">Justificação (mín. 5 caracteres)</label>
-                <textarea class="form-control pc-input" id="reject-reason" rows="3" minlength="5" required></textarea>
+            <div class="modal-body py-3 px-3">
+                <label class="form-label pc-text small fw-bold mb-2" for="reject-reason">Justificação Técnica da Auditoria (mín. 5 caracteres)</label>
+                <textarea class="form-control pc-input" id="reject-reason" rows="3" minlength="5" placeholder="Especifique a falha técnica ou erro na georreferenciação..." required></textarea>
             </div>
-            <div class="modal-footer border-secondary">
-                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn pc-btn-critical" id="btn-reject-confirm">Confirmar rejeição</button>
+            <div class="modal-footer border-secondary py-2 px-3">
+                <button type="button" class="btn btn-sm btn-outline-light text-white" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-sm pc-btn-critical fw-bold text-uppercase px-3" id="btn-reject-confirm">Confirmar Rejeição</button>
             </div>
         </div>
     </div>
@@ -289,23 +303,20 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<!-- 1️⃣ Configurações Inline -->
 <script>
     function getAuthHeaders() {
         const token = localStorage.getItem('access_token');
         return token ? { 'Authorization': 'Bearer ' + token } : {};
     }
+    window.getAuthHeaders = getAuthHeaders;
     window.PC_MAP_MODE = document.getElementById('map-page-root')?.dataset.pcMode || 'command';
 </script>
 
-<!-- 2️⃣ Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin=""></script>
 
-<!-- ✅ Leaflet MarkerCluster JS -->
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
-<!-- 3️⃣ Teu Código Principal -->
 <script src="{{ url_for('static', path='/js/map-logic.js') }}"></script>
 {% endblock %}

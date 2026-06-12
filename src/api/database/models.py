@@ -1,7 +1,7 @@
 # src/api/database/models.py
-import datetime
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, Enum, JSON
 from sqlalchemy.orm import declarative_base
+from datetime import datetime
 
 Base = declarative_base()
 
@@ -13,7 +13,7 @@ class User(Base):
     name = Column(String(100), nullable=False)
     role = Column(Enum("admin", "tecnico", "coordenador", name="user_roles"), default="tecnico")
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 class Household(Base):
     __tablename__ = "households"
@@ -30,7 +30,7 @@ class Household(Base):
     rejection_reason = Column(Text, nullable=True)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     validated_by = Column(Integer, ForeignKey("users.id"), nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
     validated_at = Column(DateTime, nullable=True)
     infrastructures = Column(JSON, nullable=True, default=dict)
     
@@ -48,4 +48,16 @@ class AccessLog(Base):
     household_id = Column(Integer, ForeignKey("households.id"), nullable=True)
     action = Column(String, nullable=False)
     ip_address = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class OperationalLayer(Base):
+    __tablename__ = "operational_layers"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), index=True, nullable=False) # Ex: "Boca de Incêndio 01"
+    layer_type = Column(String(50), nullable=False) # Ex: 'hydrant', 'meeting_point', 'evacuation_route'
+    geometry = Column(String(255), nullable=False) # WKT: "POINT(-8.123 40.234)"
+    description = Column(Text, nullable=True) # Detalhes técnicos (pressão, capacidade)
+    status = Column(String(20), default="ACTIVE") # ACTIVE, PENDING, ARCHIVED
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)

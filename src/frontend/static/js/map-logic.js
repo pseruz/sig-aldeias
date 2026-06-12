@@ -1,4 +1,4 @@
-// js/map-logic.js — Versão Final com Melhorias Completas
+// js/map-logic.js — Versão Final com Melhorias Completas + Infraestruturas BIM
 
 const STATUS_COLORS = {
     pendente: '#DC3545',
@@ -47,6 +47,7 @@ const MOCK_STREETS = {
 window._streetLayer = null;
 window._infraMarkersLayer = null;
 window.forestLayer = null; // ✅ NOVO
+window.infrastructuresLayer = null; // ✅ NOVO: Camada para infraestruturas BIM
 
 function drawStreet(key) {
     if (!map) return;
@@ -838,6 +839,82 @@ async function loadPendingMarkers() {
     await loadHouseholdMarkers();
 }
 
+// =========================================================================
+// ✅ NOVO: CARREGAR INFRAESTRUTURAS BIM (Bocas de Incêndio, Edifícios Públicos, etc.)
+// =========================================================================
+async function carregarInfraestruturas() {
+    try {
+        const response = await fetch('/infrastructures/', {
+            headers: { Accept: 'application/json' }
+        });
+        
+        if (!response.ok) {
+            console.warn('⚠️ Infraestruturas não disponíveis:', response.status);
+            return;
+        }
+        
+        const infraestruturas = await response.json();
+        console.log(`✅ ${infraestruturas.length} infraestruturas BIM carregadas`);
+        
+        // Criar camada para infraestruturas
+        window.infrastructuresLayer = L.layerGroup().addTo(map);
+        
+        // Iterar sobre cada infraestrutura
+        infraestruturas.forEach(infra => {
+            // Extrair coordenadas do WKT "POINT(lng lat)"
+            const match = infra.geometry.match(/POINT\(([-\d.]+)\s+([-\d.]+)\)/);
+            if (!match) {
+                console.warn('Geometria inválida:', infra.geometry);
+                return;
+            }
+            
+            const lng = parseFloat(match[1]);
+            const lat = parseFloat(match[2]);
+            
+            // Definir ícone baseado no tipo
+            let iconUrl;
+            let iconSize = [25, 41];
+            
+            if (infra.layer_type === 'hydrant') {
+                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png';
+            } else if (infra.layer_type === 'public_building') {
+                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-violet.png';
+                iconSize = [30, 50];
+            } else if (infra.layer_type === 'meeting_point') {
+                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png';
+            } else if (infra.layer_type === 'evacuation_route') {
+                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png';
+            } else {
+                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png';
+            }
+            
+            const customIcon = L.icon({
+                iconUrl: iconUrl,
+                iconSize: iconSize,
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34]
+            });
+            
+            // Criar marcador
+            const marker = L.marker([lat, lng], { icon: customIcon })
+                .bindPopup(`
+                    <div style="min-width: 200px;">
+                        <h4 style="margin: 0 0 8px 0; color: #2c3e50;">${infra.name}</h4>
+                        <p style="margin: 4px 0; font-size: 12px;">
+                            <strong>Tipo:</strong> ${infra.layer_type}<br>
+                            <strong>Descrição:</strong> ${infra.description || 'N/A'}<br>
+                            <strong>Estado:</strong> ${infra.status}
+                        </p>
+                    </div>
+                `)
+                .addTo(window.infrastructuresLayer);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao carregar infraestruturas:', error);
+    }
+}
+
 function initMap() {
     map = L.map('map-container').setView([40.22, -8.05], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -858,8 +935,9 @@ function initMap() {
     window.riskLayers = null;
     window.fireLayer = null;
     window.floodLayer = null;
-    window.forestLayer = null; // ✅ NOVO
+    window.forestLayer = null;
     window._infraMarkersLayer = null;
+    window.infrastructuresLayer = null;
 }
 
 function wireMapControls() {
@@ -1264,5 +1342,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     loadHouseholdMarkers();
+    carregarInfraestruturas(); // ✅ NOVO: Carregar infraestruturas BIM
     map.invalidateSize();
 });

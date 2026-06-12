@@ -4,31 +4,45 @@
 
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+    .pc-panel-nested {
+        background-color: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--pc-border-color, rgba(255,255,255,0.08));
+        transition: border-color 0.2s ease;
+    }
+    .pc-panel-nested:focus-within {
+        border-color: var(--pc-accent, #ff4a4a);
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="pc-registo-wrap">
-    <header class="pc-registo-header pc-panel mb-3">
-        <h1 class="pc-text h4 mb-1">Registo de Agregado</h1>
-        <p class="pc-text-muted mb-0 small">Fluxo de campo — técnico no terreno</p>
-        <div id="auth-section" class="pc-auth-badge mt-2" role="status" aria-live="polite"></div>
+<div class="container-fluid py-4" style="max-width: 800px;">
+    <header class="pc-registo-header pc-panel p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1 class="pc-text h4 mb-1"><i class="bi bi-geo-fill me-2 text-danger"></i>Registo de Agregado</h1>
+                <p class="pc-text-muted mb-0 small">Fluxo de campo — técnico no terreno</p>
+            </div>
+            <div id="auth-section" class="pc-auth-badge" role="status" aria-live="polite"></div>
+        </div>
     </header>
 
-    <form id="registo-form" class="pc-registo-form pc-panel" novalidate>
+    <form id="registo-form" class="pc-registo-form pc-panel p-4" novalidate>
         <div class="mb-3">
-            <label class="form-label pc-text" for="reg-name">Nome do agregado / habitação</label>
+            <label class="form-label pc-text fw-bold small" for="reg-name">Nome do agregado / habitação</label>
             <input type="text" class="form-control form-control-lg pc-input" id="reg-name" name="name"
                    required minlength="2" maxlength="100" placeholder="Ex: Família Costa">
         </div>
 
         <div class="mb-3">
-            <label class="form-label pc-text" for="reg-people">Nº de pessoas</label>
+            <label class="form-label pc-text fw-bold small" for="reg-people">Nº de pessoas</label>
             <input type="number" class="form-control form-control-lg pc-input" id="reg-people" name="num_people"
                    required min="1" max="20" value="4">
         </div>
 
         <div class="mb-3">
-            <span class="form-label pc-text d-block">Nº de pisos</span>
+            <span class="form-label pc-text d-block fw-bold small">Nº de pisos</span>
             <div class="btn-group w-100 pc-btn-group-tactile" role="group" aria-label="Número de pisos">
                 <input type="radio" class="btn-check" name="num_floors" id="floors-1" value="1" checked>
                 <label class="btn btn-outline-light btn-lg" for="floors-1">1</label>
@@ -40,7 +54,7 @@
         </div>
 
         <div class="mb-3">
-            <span class="form-label pc-text d-block">Tipo de construção</span>
+            <span class="form-label pc-text d-block fw-bold small">Tipo de construção</span>
             <div class="btn-group w-100 pc-btn-group-tactile" role="group" aria-label="Material">
                 <input type="radio" class="btn-check" name="material" id="mat-madeira" value="madeira">
                 <label class="btn btn-outline-light btn-lg" for="mat-madeira">Madeira</label>
@@ -51,144 +65,123 @@
             </div>
         </div>
 
-        <div class="mb-3 pc-check-tactile">
+        <div class="mb-4 pc-check-tactile p-3 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid var(--pc-border-color, rgba(255,255,255,0.05));">
+            <span class="form-label pc-text d-block fw-bold small mb-2">Indicadores de Vulnerabilidade</span>
             <div class="form-check form-check-lg mb-2">
                 <input class="form-check-input" type="checkbox" id="reg-elderly" name="has_elderly">
-                <label class="form-check-label pc-text" for="reg-elderly">👵 Idosos</label>
+                <label class="form-check-label pc-text" for="reg-elderly">👵 Idosos no agregado</label>
             </div>
             <div class="form-check form-check-lg mb-2">
                 <input class="form-check-input" type="checkbox" id="reg-children" name="has_children">
-                <label class="form-check-label pc-text" for="reg-children">👶 Crianças</label>
+                <label class="form-check-label pc-text" for="reg-children">👶 Crianças no agregado</label>
             </div>
             <div class="form-check form-check-lg">
                 <input class="form-check-input" type="checkbox" id="reg-mobility" name="has_mobility_issues">
-                <label class="form-check-label pc-text" for="reg-mobility">♿ Mobilidade reduzida</label>
+                <label class="form-check-label pc-text" for="reg-mobility">♿ Elementos com mobilidade reduzida</label>
             </div>
         </div>
 
-        <div class="mb-3">
-            <button type="button" class="btn btn-outline-light btn-lg w-100 pc-touch-btn" id="btn-gps">
-                📍 Capturar Posição GPS
+        <div class="mb-4">
+            <label class="form-label pc-text fw-bold small d-block">Coordenadas Principais da Habitação</label>
+            <button type="button" class="btn btn-outline-warning btn-lg w-100 pc-touch-btn fw-bold text-uppercase" id="btn-submit-gps-hab">
+                <i class="bi bi-geo-alt-fill me-2"></i>Capturar GPS Habitação
             </button>
             <input type="hidden" id="reg-latitude" name="latitude">
             <input type="hidden" id="reg-longitude" name="longitude">
-            <p class="pc-gps-status small mt-2 mb-0" id="gps-status">Coordenadas ainda não capturadas.</p>
+            <p class="pc-gps-status small mt-2 mb-0 text-center text-warning fw-bold" id="gps-status">
+                <i class="bi bi-info-circle me-1"></i>Posição ainda não capturada.
+            </p>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label pc-text" for="reg-notes">Observações</label>
+        <div class="mb-4">
+            <label class="form-label pc-text fw-bold small" for="reg-notes">Observações de Campo</label>
             <textarea class="form-control pc-input" id="reg-notes" name="observations" rows="3"
-                      placeholder="Notas de campo (armazenadas localmente até integração futura)"></textarea>
+                      placeholder="Notas táticas adicionais obtidas no local..."></textarea>
         </div>
 
-        <!-- ================================================================= -->
-        <!-- SECÇÃO NOVA: INFRAESTRUTURAS TÉCNICAS                           -->
-        <!-- ================================================================= -->
-        <hr class="border-secondary my-4">
+        <hr style="border-top: 1px dashed var(--pc-border-color, rgba(255,255,255,0.15));" class="my-4">
         
-        <h5 class="pc-text fw-bold mb-2">
-            <i class="bi bi-gear-wide-connected me-2"></i>Infraestruturas Técnicas
+        <h5 class="pc-text fw-bold mb-1">
+            <i class="bi bi-gear-wide-connected me-2 text-danger"></i>Infraestruturas Técnicas
         </h5>
         <p class="pc-text-muted small mb-3">
-            Para cada infraestrutura, indica se existe no local. Se existir, 
-            captura as coordenadas GPS.
+            Indique a existência de infraestruturas críticas na proximidade imediata da habitação.
         </p>
 
-        <!-- Infraestrutura 1: Portas de Emergência -->
-        <div class="infra-item mb-3 p-3 bg-dark rounded" data-type="emergency_doors">
+        <div class="infra-item mb-3 p-3 pc-panel-nested rounded" data-type="emergency_doors">
             <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                <label class="pc-text fw-bold mb-0">🚪 Portas de Emergência</label>
+                <label class="pc-text fw-bold mb-0 small">🚪 Portas de Emergência</label>
                 <div class="btn-group btn-group-sm" role="group">
-                    <input type="radio" class="btn-check" name="infra_emergency_doors_status" 
-                           id="infra_emergency_doors_yes" value="exists">
-                    <label class="btn btn-outline-success" for="infra_emergency_doors_yes">Existe</label>
-
-                    <input type="radio" class="btn-check" name="infra_emergency_doors_status" 
-                           id="infra_emergency_doors_na" value="na" checked>
-                    <label class="btn btn-outline-secondary" for="infra_emergency_doors_na">N/A</label>
+                    <input type="radio" class="btn-check" name="infra_emergency_doors_status" id="infra_emergency_doors_yes" value="exists">
+                    <label class="btn btn-outline-success px-3" for="infra_emergency_doors_yes">Existe</label>
+                    <input type="radio" class="btn-check" name="infra_emergency_doors_status" id="infra_emergency_doors_na" value="na" checked>
+                    <label class="btn btn-outline-secondary px-3" for="infra_emergency_doors_na">N/A</label>
                 </div>
             </div>
-            <div class="infra-coords-panel p-2 bg-dark rounded d-none">
-                <button type="button" class="btn btn-sm btn-outline-warning w-100 mb-2 infra-gps-btn" data-infra="emergency_doors">
-                    <i class="bi bi-geo-alt-fill me-1"></i>Capturar GPS
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary w-100 mb-2 infra-simulate-btn" data-infra="emergency_doors" style="display:none;">
-                    <i class="bi bi-lightning-fill me-1"></i>Simular GPS (Demo)
-                </button>
-                <small class="pc-text-muted d-block" id="status_emergency_doors">Aguardando decisão...</small>
+            <div class="infra-coords-panel p-2 rounded d-none" style="background: rgba(0,0,0,0.15);">
+                <div class="row g-2">
+                    <div class="col-6"><button type="button" class="btn btn-sm btn-warning w-100 infra-gps-btn fw-bold" data-infra="emergency_doors"><i class="bi bi-geo-alt-fill me-1"></i>GPS</button></div>
+                    <div class="col-6"><button type="button" class="btn btn-sm btn-outline-info w-100 infra-simulate-btn fw-bold" data-infra="emergency_doors" style="display:none;"><i class="bi bi-lightning-fill me-1"></i>Simular</button></div>
+                </div>
+                <small class="d-block text-center mt-2" id="status_emergency_doors">Aguardando decisão...</small>
                 <input type="hidden" name="infra_emergency_doors_lat" id="coord_emergency_doors_lat">
                 <input type="hidden" name="infra_emergency_doors_lng" id="coord_emergency_doors_lng">
             </div>
         </div>
 
-        <!-- Infraestrutura 2: Bocas de Incêndio -->
-        <div class="infra-item mb-3 p-3 bg-dark rounded" data-type="fire_hydrants">
+        <div class="infra-item mb-3 p-3 pc-panel-nested rounded" data-type="fire_hydrants">
             <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                <label class="pc-text fw-bold mb-0">🔥 Bocas de Incêndio</label>
+                <label class="pc-text fw-bold mb-0 small">🔥 Bocas de Incêndio</label>
                 <div class="btn-group btn-group-sm" role="group">
-                    <input type="radio" class="btn-check" name="infra_fire_hydrants_status" 
-                           id="infra_fire_hydrants_yes" value="exists">
-                    <label class="btn btn-outline-success" for="infra_fire_hydrants_yes">Existe</label>
-
-                    <input type="radio" class="btn-check" name="infra_fire_hydrants_status" 
-                           id="infra_fire_hydrants_na" value="na" checked>
-                    <label class="btn btn-outline-secondary" for="infra_fire_hydrants_na">N/A</label>
+                    <input type="radio" class="btn-check" name="infra_fire_hydrants_status" id="infra_fire_hydrants_yes" value="exists">
+                    <label class="btn btn-outline-success px-3" for="infra_fire_hydrants_yes">Existe</label>
+                    <input type="radio" class="btn-check" name="infra_fire_hydrants_status" id="infra_fire_hydrants_na" value="na" checked>
+                    <label class="btn btn-outline-secondary px-3" for="infra_fire_hydrants_na">N/A</label>
                 </div>
             </div>
-            <div class="infra-coords-panel p-2 bg-dark rounded d-none">
-                <button type="button" class="btn btn-sm btn-outline-warning w-100 mb-2 infra-gps-btn" data-infra="fire_hydrants">
-                    <i class="bi bi-geo-alt-fill me-1"></i>Capturar GPS
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary w-100 mb-2 infra-simulate-btn" data-infra="fire_hydrants" style="display:none;">
-                    <i class="bi bi-lightning-fill me-1"></i>Simular GPS (Demo)
-                </button>
-                <small class="pc-text-muted d-block" id="status_fire_hydrants">Aguardando decisão...</small>
+            <div class="infra-coords-panel p-2 rounded d-none" style="background: rgba(0,0,0,0.15);">
+                <div class="row g-2">
+                    <div class="col-6"><button type="button" class="btn btn-sm btn-warning w-100 infra-gps-btn fw-bold" data-infra="fire_hydrants"><i class="bi bi-geo-alt-fill me-1"></i>GPS</button></div>
+                    <div class="col-6"><button type="button" class="btn btn-sm btn-outline-info w-100 infra-simulate-btn fw-bold" data-infra="fire_hydrants" style="display:none;"><i class="bi bi-lightning-fill me-1"></i>Simular</button></div>
+                </div>
+                <small class="d-block text-center mt-2" id="status_fire_hydrants">Aguardando decisão...</small>
                 <input type="hidden" name="infra_fire_hydrants_lat" id="coord_fire_hydrants_lat">
                 <input type="hidden" name="infra_fire_hydrants_lng" id="coord_fire_hydrants_lng">
             </div>
         </div>
 
-        <!-- Infraestrutura 3: Ponto de Encontro -->
-        <div class="infra-item mb-3 p-3 bg-dark rounded" data-type="meeting_point">
+        <div class="infra-item mb-4 p-3 pc-panel-nested rounded" data-type="meeting_point">
             <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                <label class="pc-text fw-bold mb-0">🎯 Ponto de Encontro (Evacuação)</label>
+                <label class="pc-text fw-bold mb-0 small">🎯 Ponto de Encontro (Evacuação)</label>
                 <div class="btn-group btn-group-sm" role="group">
-                    <input type="radio" class="btn-check" name="infra_meeting_point_status" 
-                           id="infra_meeting_point_yes" value="exists">
-                    <label class="btn btn-outline-success" for="infra_meeting_point_yes">Existe</label>
-
-                    <input type="radio" class="btn-check" name="infra_meeting_point_status" 
-                           id="infra_meeting_point_na" value="na" checked>
-                    <label class="btn btn-outline-secondary" for="infra_meeting_point_na">N/A</label>
+                    <input type="radio" class="btn-check" name="infra_meeting_point_status" id="infra_meeting_point_yes" value="exists">
+                    <label class="btn btn-outline-success px-3" for="infra_meeting_point_yes">Existe</label>
+                    <input type="radio" class="btn-check" name="infra_meeting_point_status" id="infra_meeting_point_na" value="na" checked>
+                    <label class="btn btn-outline-secondary px-3" for="infra_meeting_point_na">N/A</label>
                 </div>
             </div>
-            <div class="infra-coords-panel p-2 bg-dark rounded d-none">
-                <button type="button" class="btn btn-sm btn-outline-warning w-100 mb-2 infra-gps-btn" data-infra="meeting_point">
-                    <i class="bi bi-geo-alt-fill me-1"></i>Capturar GPS
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary w-100 mb-2 infra-simulate-btn" data-infra="meeting_point" style="display:none;">
-                    <i class="bi bi-lightning-fill me-1"></i>Simular GPS (Demo)
-                </button>
-                <small class="pc-text-muted d-block" id="status_meeting_point">Aguardando decisão...</small>
+            <div class="infra-coords-panel p-2 rounded d-none" style="background: rgba(0,0,0,0.15);">
+                <div class="row g-2">
+                    <div class="col-6"><button type="button" class="btn btn-sm btn-warning w-100 infra-gps-btn fw-bold" data-infra="meeting_point"><i class="bi bi-geo-alt-fill me-1"></i>GPS</button></div>
+                    <div class="col-6"><button type="button" class="btn btn-sm btn-outline-info w-100 infra-simulate-btn fw-bold" data-infra="meeting_point" style="display:none;"><i class="bi bi-lightning-fill me-1"></i>Simular</button></div>
+                </div>
+                <small class="d-block text-center mt-2" id="status_meeting_point">Aguardando decisão...</small>
                 <input type="hidden" name="infra_meeting_point_lat" id="coord_meeting_point_lat">
                 <input type="hidden" name="infra_meeting_point_lng" id="coord_meeting_point_lng">
             </div>
         </div>
 
-        <!-- Campo oculto que vai conter o JSON das infraestruturas -->
         <input type="hidden" id="infrastructures_json" name="infrastructures_json">
 
-        <!-- ================================================================= -->
-        <!-- FIM DA SECÇÃO DE INFRAESTRUTURAS                                -->
-        <!-- ================================================================= -->
+        <div id="registo-msg" class="pc-validate-msg mb-3" role="alert" aria-live="polite"></div>
 
-        <div id="registo-msg" class="pc-validate-msg mb-2" role="alert" aria-live="polite"></div>
-
-        <button type="submit" class="btn pc-btn-critical btn-lg w-100 pc-touch-btn" id="btn-submit-registo">
-            💾 Submeter para Validação
+        <button type="submit" class="btn pc-btn-critical btn-lg w-100 pc-touch-btn fw-bold text-uppercase" id="btn-submit-registo">
+            <i class="bi bi-cloud-upload-fill me-2"></i>Submeter para Validação
         </button>
 
-        <a href="/dashboard" class="btn btn-outline-light w-100 mt-2 pc-touch-btn">Central de Comando</a>
+        <a href="/map" class="btn btn-outline-light w-100 mt-2 pc-touch-btn text-uppercase small" style="letter-spacing: 0.5px;">
+            <i class="bi bi-speedometer2 me-2"></i>Central de Comando
+        </a>
     </form>
 </div>
 {% endblock %}
@@ -199,148 +192,136 @@
         const token = localStorage.getItem('access_token');
         return token ? { 'Authorization': 'Bearer ' + token } : {};
     }
-</script>
 
-<script>
-// =============================================================================
-// LÓGICA DAS INFRAESTRUTURAS TÉCNICAS
-// =============================================================================
-
-// Detetar se é desktop (para mostrar botão de simulação)
-const IS_DESKTOP = !('ontouchstart' in window);
-if (IS_DESKTOP) {
-    document.querySelectorAll('.infra-simulate-btn')
-        .forEach(btn => btn.style.display = 'block');
-}
-
-// Mostrar/esconder painéis de coordenadas conforme seleção
-document.querySelectorAll('.infra-item').forEach(item => {
-    const type = item.dataset.type;
-    const yesRadio = document.getElementById(`infra_${type}_yes`);
-    const naRadio = document.getElementById(`infra_${type}_na`);
-    const panel = item.querySelector('.infra-coords-panel');
-    const statusEl = document.getElementById(`status_${type}`);
-
-    function togglePanel() {
-        if (yesRadio.checked) {
-            panel.classList.remove('d-none');
-            statusEl.textContent = '✅ Marcado como existente. Captura GPS opcional.';
-            statusEl.className = 'text-success small';
-        } else {
-            panel.classList.add('d-none');
-            document.getElementById(`coord_${type}_lat`).value = '';
-            document.getElementById(`coord_${type}_lng`).value = '';
-            statusEl.textContent = '❌ Marcado como N/A (Não Aplicável)';
-            statusEl.className = 'pc-text-muted small';
-        }
-    }
-    
-    yesRadio.addEventListener('change', togglePanel);
-    naRadio.addEventListener('change', togglePanel);
-});
-
-// Captura GPS real (Web Geolocation API)
-function captureGPS(type, statusEl, latInput, lngInput) {
-    if (!navigator.geolocation) {
-        statusEl.textContent = '❌ GPS não suportado neste navegador';
-        statusEl.className = 'text-danger small';
-        return;
+    const IS_DESKTOP = !('ontouchstart' in window);
+    if (IS_DESKTOP) {
+        document.querySelectorAll('.infra-simulate-btn').forEach(btn => btn.style.display = 'block');
     }
 
-    statusEl.textContent = '📡 A obter localização... (aceita a permissão)';
-    statusEl.className = 'text-warning small';
+    document.querySelectorAll('.infra-item').forEach(item => {
+        const type = item.dataset.type;
+        const yesRadio = document.getElementById(`infra_${type}_yes`);
+        const naRadio = document.getElementById(`infra_${type}_na`);
+        const panel = item.querySelector('.infra-coords-panel');
+        const statusEl = document.getElementById(`status_${type}`);
 
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const lat = position.coords.latitude.toFixed(6);
-            const lng = position.coords.longitude.toFixed(6);
-            
-            latInput.value = lat;
-            lngInput.value = lng;
-            
-            statusEl.textContent = `✅ Capturado: ${lat}, ${lng}`;
-            statusEl.className = 'text-success small';
-        },
-        (error) => {
-            let msg = '❌ Erro ao capturar GPS';
-            if (error.code === 1) msg = '❌ Permissão negada';
-            if (error.code === 2) msg = '❌ Localização indisponível';
-            if (error.code === 3) msg = '⏳ Timeout na captura';
-            statusEl.textContent = msg + ' — Usa "Simular GPS"';
-            statusEl.className = 'text-danger small';
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
-}
-
-// Simular GPS para demo em desktop (coordenadas de Arganil, Portugal)
-function simulateGPS(type, statusEl, latInput, lngInput) {
-    const baseLat = 40.22;
-    const baseLng = -8.05;
-    const lat = (baseLat + (Math.random() - 0.5) * 0.01).toFixed(6);
-    const lng = (baseLng + (Math.random() - 0.5) * 0.01).toFixed(6);
-    
-    latInput.value = lat;
-    lngInput.value = lng;
-    
-    statusEl.textContent = `🎮 Simulado (Demo): ${lat}, ${lng}`;
-    statusEl.className = 'text-info small';
-}
-
-// Ligar botões de GPS real
-document.querySelectorAll('.infra-gps-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const type = btn.dataset.infra;
-        captureGPS(
-            type,
-            document.getElementById(`status_${type}`),
-            document.getElementById(`coord_${type}_lat`),
-            document.getElementById(`coord_${type}_lng`)
-        );
-    });
-});
-
-// Ligar botões de simulação
-document.querySelectorAll('.infra-simulate-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const type = btn.dataset.infra;
-        simulateGPS(
-            type,
-            document.getElementById(`status_${type}`),
-            document.getElementById(`coord_${type}_lat`),
-            document.getElementById(`coord_${type}_lng`)
-        );
-    });
-});
-
-// =============================================================================
-// INTERCEPTAR SUBMIT PARA ADICIONAR INFRAESTRUTURAS
-// =============================================================================
-document.getElementById('registo-form').addEventListener('submit', function(e) {
-    const formData = new FormData(this);
-    
-    // Construir objeto de infraestruturas
-    const infrastructures = {};
-    ['emergency_doors', 'fire_hydrants', 'meeting_point'].forEach(type => {
-        const status = formData.get(`infra_${type}_status`);
-        if (status === 'exists') {
-            infrastructures[type] = {
-                status: 'exists',
-                lat: parseFloat(formData.get(`infra_${type}_lat`)) || null,
-                lng: parseFloat(formData.get(`infra_${type}_lng`)) || null,
-                captured_at: new Date().toISOString()
-            };
-        } else {
-            infrastructures[type] = { status: 'na' };
+        function togglePanel() {
+            if (yesRadio.checked) {
+                panel.classList.remove('d-none');
+                statusEl.textContent = '📡 Captura GPS Recomendada';
+                statusEl.className = 'text-warning small fw-bold d-block';
+            } else {
+                panel.classList.add('d-none');
+                document.getElementById(`coord_${type}_lat`).value = '';
+                document.getElementById(`coord_${type}_lng`).value = '';
+                statusEl.textContent = '❌ Não Aplicável';
+                statusEl.className = 'pc-text-muted small d-block';
+            }
         }
+        yesRadio.addEventListener('change', togglePanel);
+        naRadio.addEventListener('change', togglePanel);
     });
-    
-    // Guardar como JSON num campo hidden para o registo-logic.js ler
-    document.getElementById('infrastructures_json').value = JSON.stringify(infrastructures);
-    
-    console.log('📦 Infraestruturas a enviar:', infrastructures);
-});
-</script>
 
+    function captureGPS(type, statusEl, latInput, lngInput) {
+        if (!navigator.geolocation) {
+            statusEl.textContent = '❌ GPS não suportado';
+            statusEl.className = 'text-danger small fw-bold';
+            return;
+        }
+        statusEl.textContent = '📡 A ler satélites...';
+        statusEl.className = 'text-warning small fw-bold';
+
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const lat = pos.coords.latitude.toFixed(6);
+                const lng = pos.coords.longitude.toFixed(6);
+                latInput.value = lat;
+                lngInput.value = lng;
+                statusEl.textContent = `✅ Fixado: ${lat}, ${lng}`;
+                statusEl.className = 'text-success small fw-bold';
+            },
+            (err) => {
+                statusEl.textContent = '❌ Timeout/Erro GPS. Use Simulação.';
+                statusEl.className = 'text-danger small fw-bold';
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    }
+
+    // GPS Principal da Habitação
+    document.getElementById('btn-submit-gps-hab')?.addEventListener('click', function() {
+        const statusEl = document.getElementById('gps-status');
+        const latInput = document.getElementById('reg-latitude');
+        const lngInput = document.getElementById('reg-longitude');
+        
+        if (!navigator.geolocation) {
+            statusEl.textContent = '❌ GPS não suportado no dispositivo';
+            return;
+        }
+        statusEl.textContent = '📡 A capturar posição da habitação...';
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                latInput.value = pos.coords.latitude.toFixed(6);
+                lngInput.value = pos.coords.longitude.toFixed(6);
+                statusEl.textContent = `✅ Posição Fixada: ${latInput.value}, ${lngInput.value}`;
+                statusEl.className = "pc-gps-status small mt-2 mb-0 text-center text-success fw-bold";
+            },
+            () => {
+                // Fallback Simulação para a habitação em ambiente de desenvolvimento/Desktop
+                const baseLat = 40.2245;
+                const baseLng = -8.0512;
+                latInput.value = (baseLat + (Math.random() - 0.5) * 0.005).toFixed(6);
+                lngInput.value = (baseLng + (Math.random() - 0.5) * 0.005).toFixed(6);
+                statusEl.textContent = `🎮 Posição Simulada (Demo): ${latInput.value}, ${lngInput.value}`;
+                statusEl.className = "pc-gps-status small mt-2 mb-0 text-center text-info fw-bold";
+            },
+            { enableHighAccuracy: true, timeout: 7000 }
+        );
+    });
+
+    function simulateGPS(type, statusEl, latInput, lngInput) {
+        const baseLat = 40.22;
+        const baseLng = -8.05;
+        const lat = (baseLat + (Math.random() - 0.5) * 0.01).toFixed(6);
+        const lng = (baseLng + (Math.random() - 0.5) * 0.01).toFixed(6);
+        latInput.value = lat;
+        lngInput.value = lng;
+        statusEl.textContent = `🎮 Simulado: ${lat}, ${lng}`;
+        statusEl.className = 'text-info small fw-bold';
+    }
+
+    document.querySelectorAll('.infra-gps-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const type = btn.dataset.infra;
+            captureGPS(type, document.getElementById(`status_${type}`), document.getElementById(`coord_${type}_lat`), document.getElementById(`coord_${type}_lng`));
+        });
+    });
+
+    document.querySelectorAll('.infra-simulate-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const type = btn.dataset.infra;
+            simulateGPS(type, document.getElementById(`status_${type}`), document.getElementById(`coord_${type}_lat`), document.getElementById(`coord_${type}_lng`));
+        });
+    });
+
+    document.getElementById('registo-form').addEventListener('submit', function(e) {
+        const formData = new FormData(this);
+        const infrastructures = {};
+        ['emergency_doors', 'fire_hydrants', 'meeting_point'].forEach(type => {
+            const status = formData.get(`infra_${type}_status`);
+            if (status === 'exists') {
+                infrastructures[type] = {
+                    status: 'exists',
+                    lat: parseFloat(formData.get(`infra_${type}_lat`)) || null,
+                    lng: parseFloat(formData.get(`infra_${type}_lng`)) || null,
+                    captured_at: new Date().toISOString()
+                };
+            } else {
+                infrastructures[type] = { status: 'na' };
+            }
+        });
+        document.getElementById('infrastructures_json').value = JSON.stringify(infrastructures);
+    });
+</script>
 <script src="{{ url_for('static', path='/js/registo-logic.js') }}"></script>
 {% endblock %}

@@ -1,7 +1,7 @@
 # src/api/main.py
 from pathlib import Path
 
-# ✅ CORRIGIDO: Adicionados Depends
+# Adicionados Depends
 from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -9,16 +9,18 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session  # ✅ NOVO
 from contextlib import asynccontextmanager
 
-# ✅ Import direto dos routers
+# Import direto dos routers
 from src.api.routes.auth import router as auth_router
 from src.api.routes.households import router as households_router
 from src.api.routes.validation import router as validation_router
 from src.api.routes.reports import router as reports_router
 from src.api.routes import ficha
 
-# ✅ NOVO: Import da base de dados
+# Import da base de dados
 from src.api.database.connection import get_db
 from src.api.database.models import Household
+
+from src.api.routes import infrastructures
 
 # =============================================================================
 # 2. INICIALIZAÇÃO (OBRIGATÓRIO: antes de qualquer @app.get)
@@ -53,6 +55,7 @@ app.include_router(households_router)
 app.include_router(validation_router)
 app.include_router(reports_router)
 app.include_router(ficha.router)
+app.include_router(infrastructures.router)
 
 # =============================================================================
 # 3. ROTAS DE SISTEMA (Simples, sem dependências)

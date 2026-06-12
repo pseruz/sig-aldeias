@@ -73,8 +73,8 @@ body.pc-operational .navbar-text {
 
 /* Container principal - ocupa altura após navbar */
 body.pc-operational main.container-fluid {
-  height: calc(100vh - var(--pc-nav-height));
-  max-height: calc(100vh - var(--pc-nav-height));
+  height: calc((100vh-60px) - var(--pc-nav-height));
+  max-height: calc((100vh-60px) - var(--pc-nav-height));
   overflow: hidden;
   padding: 0;
   margin: 0;
@@ -84,7 +84,7 @@ body.pc-operational main.container-fluid {
 .pc-app-frame {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: calc(100vh - 60px) !important;
   padding: var(--pc-gap);
   gap: var(--pc-gap);
   box-sizing: border-box;
@@ -161,34 +161,65 @@ body.pc-operational main.container-fluid {
 /* ========================================================================= */
 
 .pc-map-column {
-  flex: 1;
-  min-width: 0; /* ✅ Crítico para flexbox */
+  flex: 1 !important;
+  min-width: 0; 
   position: relative;
   background: #1a2332;
-  border-radius: var(--pc-radius);
-  overflow: hidden;
   border: 1px solid var(--pc-border);
-  display: flex;
-  flex-direction: column;
   
-  /* ✅ CORREÇÃO: Altura calculada corretamente */
-  height: calc(100vh - var(--pc-nav-height) - 36px);
-  min-height: 0; /* ✅ Permite encolher */
+  /* 📐 LAYOUT ELÁSTICO: Removemos o calc() problemático. 
+     O Flexbox vai obrigar a coluna a esticar-se até ao limite inferior exato do Bento Box */
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important; 
+  min-height: 0 !important;
+
+  /* Aplica o raio do Bento Box na moldura exterior */
+  border-radius: var(--pc-radius, 12px) !important;
+  overflow: hidden !important; 
 }
 
+/* 🎯 CORREÇÃO DE DIMENSÃO: Força o Leaflet a preencher o espaço que faltava em baixo */
 #map-container {
-  width: 100%;
-  height: 100%;
-  flex: 1;
-  min-height: 0; /* ✅ Crítico para Leaflet */
+  position: absolute !important;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100% !important;
+  height: 100% !important;
   z-index: 1;
+  
+  /* Força os cantos redondos na base do contentor */
+  border-bottom-left-radius: var(--pc-radius, 12px) !important;
+  border-bottom-right-radius: var(--pc-radius, 12px) !important;
+  overflow: hidden !important;
 }
 
+/* Garante que o motor do Leaflet acompanha o esticamento e a curva */
 .pc-map-column .leaflet-container {
   background: #1a2332;
   font-family: inherit;
-  height: 100%;
-  width: 100%;
+  height: 100% !important;
+  width: 100% !important;
+  border-bottom-left-radius: var(--pc-radius, 12px) !important;
+  border-bottom-right-radius: var(--pc-radius, 12px) !important;
+}
+
+.leaflet-popup-content .pc-map-popup {
+  color: #212529;
+  line-height: 1.4;
+  min-width: 140px;
+}
+
+/* Força apenas a div de estilos do Leaflet a acompanhar a curva */
+.pc-map-column .leaflet-container {
+  background: #1a2332;
+  font-family: inherit;
+  height: 100% !important;
+  width: 100% !important;
+  border-bottom-left-radius: var(--pc-radius, 8px) !important;
+  border-bottom-right-radius: var(--pc-radius, 8px) !important;
 }
 
 .leaflet-popup-content .pc-map-popup {
@@ -316,19 +347,60 @@ body.pc-operational main.container-fluid {
 /* ========================================================================= */
 
 .pc-mode-banner {
-  display: flex;
-  align-items: center;
+  display: flex !important;
+  align-items: center !important;       /* Centra verticalmente tudo */
+  justify-content: space-between !important; 
   gap: 0.75rem;
-  flex-wrap: wrap;
-  padding: 0.5rem 1rem;
+  height: 40px !important;              /* Fixa os 40px rigorosos */
+  min-height: 40px !important;
+  max-height: 40px !important;
+  padding: 0 1rem !important;
   background: rgba(255, 107, 0, 0.12);
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius);
   flex-shrink: 0;
+  overflow: hidden !important;          /* Impede que os botões saltem para fora */
 }
 
 .pc-mode-banner--field {
-  background: rgba(13, 110, 253, 0.15);
+  background: rgba(13, 110, 253, 0.15) !important;
+}
+
+/* 🎯 RESET TOTAL E INJEÇÃO DE ALTURA NOS BOTÕES INTERNOS */
+.pc-mode-banner .btn,
+.pc-mode-banner a,
+.pc-mode-banner .pc-btn-critical,
+.pc-mode-banner .btn-outline-light {
+  height: 24px !important;              /* Obriga os dois a terem exatamente 24px */
+  max-height: 24px !important;
+  min-height: 24px !important;
+  padding-top: 0 !important;            /* Elimina qualquer padding do Bootstrap */
+  padding-bottom: 0 !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+  line-height: 24px !important;         /* Centra o texto perfeitamente na vertical */
+  font-size: 10px !important;           /* Letra tática compacta */
+  font-weight: bold !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;                 /* Remove margens que os empurram */
+  border-radius: 4px !important;        /* Cantos ligeiramente arredondados nos botões */
+}
+
+/* Garante que a div que agrupa os botões no HTML também se alinha horizontalmente */
+.pc-mode-banner .d-flex {
+  align-items: center !important;
+  height: 100% !important;
+}
+
+/* Garante que o texto à esquerda ("MODO CAMPO ATIVO") fica alinhado ao centro */
+.pc-mode-banner span {
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
 }
 
 /* ========================================================================= */
@@ -445,22 +517,25 @@ body.pc-operational main.container-fluid {
 .pc-floating-legend {
   position: absolute;
   z-index: 1000;
-  background: rgba(18, 24, 36, 0.9);
+  /* 🌗 Fundo ligeiramente mais transparente (0.75 em vez de 0.9) */
+  background: rgba(18, 24, 36, 0.75) !important;
   border: 1px solid rgba(248, 249, 250, 0.15);
   border-radius: 8px;
   padding: 0.6rem 0.8rem;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px); /* Mantém o efeito vítreo tático de desfoque */
   max-width: 220px;
   font-size: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* Sombra reforçada para contraste */
 }
 
+/* 📐 SUBIDA DAS LEGENDAS: Alterado de 20px para 35px para não colarem abaixo */
 .pc-legend-materials {
-  bottom: 20px;
+  bottom: 35px !important;
   left: 20px;
 }
 
 .pc-legend-layers {
-  bottom: 20px;
+  bottom: 35px !important;
   right: 20px;
 }
 
@@ -1001,6 +1076,17 @@ body:has(.pc-ficha-header) .container-fluid > .row {
   margin: 0 auto;
 }
 
+/* 🎯 CORREÇÃO DE ALINHAMENTO DO QR CODE 
+   Força a coluna a esticar até ao fim e empurra o card do QR code para alinhar por baixo */
+body:has(.pc-ficha-header) .row:has(.pc-qr-card) {
+  display: flex !important;
+  flex-wrap: wrap;
+}
+
+.pc-qr-card {
+  margin-top: auto !important; /* 🔥 Desloca o QR Code para a base exata do alinhamento */
+}
+
 /* Ficha - Componentes */
 .pc-ficha-tecnica {
   font-size: 0.9rem;
@@ -1025,9 +1111,6 @@ body:has(.pc-ficha-header) .container-fluid > .row {
 
 /* Mini-mapa da ficha */
 #mini-map {
-  height: 250px !important;
-  min-height: 250px !important;
-  width: 100% !important;
   border-radius: 8px;
 }
 
@@ -1052,33 +1135,7 @@ body:has(.pc-ficha-header) .container-fluid > .row {
 
 /* Placeholder de foto */
 .pc-photo-placeholder {
-  width: 100%;
-  height: 180px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 2px dashed var(--pc-border);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
   overflow: hidden;
-}
-
-.pc-photo-empty {
-  text-align: center;
-  color: var(--pc-text-muted);
-}
-
-.pc-photo-empty i {
-  font-size: 3rem;
-  opacity: 0.4;
-  margin-bottom: 0.5rem;
-  display: block;
-}
-
-.pc-photo-empty p {
-  font-weight: 600;
-  margin-bottom: 0.25rem;
 }
 
 /* Checkboxes da ficha */
@@ -1131,4 +1188,110 @@ body:has(.pc-ficha-header) .container-fluid > .row {
     margin: 1cm;
     size: A4;
   }
+}
+
+/* ==========================================================================
+   SIG-ALDEIAS - TEMA OPERACIONAL (BENTO BOX GRID & HIGH CONTRAST)
+   ========================================================================== */
+
+:root {
+    --pc-bg-main: #0a0f1d;       /* Fundo principal (Azul Noturno/Escuro) */
+    --pc-bg-panel: #111a2e;      /* Fundo dos painéis Bento Box (Antracite) */
+    --pc-border-color: rgba(255, 255, 255, 0.08); /* Bordas táticas discretas */
+    --pc-text-main: #e2e8f0;     /* Texto principal de alta legibilidade */
+    --pc-text-muted: #94a3b8;    /* Texto secundário/ajuda */
+    --pc-accent: #ff7a00;        /* Laranja Alerta/Crítico */
+    --pc-accent-hover: #e06c00;  /* Laranja Alerta (Hover) */
+}
+
+/* Base da Página Operacional */
+body.pc-operational {
+    background-color: var(--pc-bg-main);
+    color: var(--pc-text-main);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* Estrutura Bento Box (Painéis Modulares) */
+.pc-panel {
+    background-color: var(--pc-bg-panel);
+    border: 1px solid var(--pc-border-color);
+    border-radius: 12px;
+    color: var(--pc-text-main);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+/* Classes Utilitárias de Texto */
+.pc-text { color: var(--pc-text-main) !important; }
+.pc-text-muted { color: var(--pc-text-muted) !important; }
+
+/* Customização de Inputs Operacionais */
+.pc-input {
+    background-color: rgba(10, 15, 29, 0.7) !important;
+    border: 1px solid var(--pc-border-color) !important;
+    color: var(--pc-text-main) !important;
+    border-radius: 6px;
+}
+.pc-input:focus {
+    border-color: var(--pc-accent) !important;
+    box-shadow: 0 0 0 3px rgba(255, 74, 74, 0.25) !important;
+    outline: none;
+}
+
+/* Estado dos Inputs Desativados (Garante legibilidade no terreno) */
+.pc-input:disabled, 
+.form-select.pc-input:disabled {
+    background-color: rgba(255, 255, 255, 0.02) !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    color: #cbd5e1 !important;
+    opacity: 0.85;
+    cursor: not-allowed;
+}
+
+/* Botões de Ação Crítica / Primários */
+.pc-btn-critical {
+    background-color: var(--pc-accent) !important;
+    border-color: var(--pc-accent) !important;
+    color: #ffffff !important;
+    transition: background-color 0.15s ease;
+}
+.pc-btn-critical:hover:not(:disabled) {
+    background-color: var(--pc-accent-hover) !important;
+    border-color: var(--pc-accent-hover) !important;
+}
+.pc-btn-critical:disabled {
+    background-color: #334155 !important;
+    border-color: #334155 !important;
+    color: #94a3b8 !important;
+    opacity: 0.6;
+}
+
+/* Grupos de Botões Táteis (Pisos e Materiais) */
+.pc-btn-group-tactile .btn-check + .btn-outline-light {
+    border-color: var(--pc-border-color);
+    color: var(--pc-text-muted);
+    background-color: rgba(255, 255, 255, 0.02);
+}
+.pc-btn-group-tactile .btn-check:checked + .btn-outline-light {
+    background-color: var(--pc-accent) !important;
+    border-color: var(--pc-accent) !important;
+    color: #ffffff !important;
+    font-weight: bold;
+}
+
+/* Elementos de Toque no Telemóvel */
+.pc-touch-btn {
+    padding: 12px;
+    border-radius: 8px;
+}
+
+/* 🟫 Modo Comando (Supervisor): Cabeçalho Castanho Tático */
+.pc-app-frame[data-pc-mode="command"] .pc-mode-banner--command {
+    background-color: #3e2723 !important; /* Castanho escuro militar/comando */
+    border-bottom: 2px solid var(--pc-accent); /* O teu Laranja de alta visibilidade */
+}
+
+/* 🟦 Modo Campo (Operador): Cabeçalho Azul Escuro */
+.pc-app-frame[data-pc-mode="field"] .pc-mode-banner--field {
+    background-color: #0d1b2a !important; /* Azul escuro operacional */
+    border-bottom: 2px solid #00b4d8; /* Azul ciano de campo */
 }

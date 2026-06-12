@@ -2,81 +2,107 @@
 {% block title %}Relatórios - SIG-Aldeias{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h2>📊 Exportação de Relatórios</h2>
-        <p class="text-muted">Exporte dados filtrados para análise externa</p>
+<div class="container-fluid py-4">
+    <div class="d-flex align-items-center mb-4 pc-panel p-3">
+        <h2 class="pc-text mb-0 h4 fw-bold">
+            <i class="bi bi-file-earmark-bar-graph text-danger me-2"></i>Central de Relatórios e Auditoria
+        </h2>
     </div>
-</div>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">🔍 Filtros</h5>
-            </div>
-            <div class="card-body">
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="pc-panel p-4 h-100" style="border: 1px solid var(--pc-border-color, rgba(255,255,255,0.1));">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-funnel text-warning fs-4 me-2"></i>
+                    <h5 class="pc-text fw-bold mb-0">Filtros de Segmentação</h5>
+                </div>
+                <p class="pc-text-muted small mb-4">Refine a extração de dados conforme as matrizes operacionais no terreno.</p>
+                
                 <form id="filterForm">
                     <div class="mb-3">
-                        <label class="form-label">Material Estrutural</label>
-                        <select class="form-select" name="material" id="materialFilter">
-                            <option value="">Todos</option>
+                        <label class="form-label pc-text small fw-bold" for="materialFilter">Material Estrutural</label>
+                        <select class="form-select pc-input" name="material" id="materialFilter">
+                            <option value="">Todos os Materiais</option>
                             <option value="betão">Betão</option>
                             <option value="madeira">Madeira</option>
                             <option value="alvenaria">Alvenaria</option>
                         </select>
                     </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" name="has_elderly" id="elderlyFilter">
-                        <label class="form-check-label" for="elderlyFilter">Com idosos (>65)</label>
-                    </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" name="has_children" id="childrenFilter">
-                        <label class="form-check-label" for="childrenFilter">Com crianças (<12)</label>
-                    </div>
+                    
                     <div class="mb-3">
-                        <label class="form-label">Estado</label>
-                        <select class="form-select" name="status" id="statusFilter">
-                            <option value="">Todos</option>
+                        <label class="form-label pc-text small fw-bold" for="statusFilter">Estado de Validação</label>
+                        <select class="form-select pc-input" name="status" id="statusFilter">
+                            <option value="">Todos os Estados</option>
                             <option value="pendente">Pendente</option>
                             <option value="validado">Validado</option>
                             <option value="rejeitado">Rejeitado</option>
                         </select>
                     </div>
-                    <button type="button" class="btn btn-primary" onclick="applyFilters()">Aplicar Filtros</button>
-                    <button type="button" class="btn btn-secondary" onclick="resetFilters()">Limpar</button>
+
+                    <div class="mb-4 pc-check-tactile p-3 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid var(--pc-border-color, rgba(255,255,255,0.05));">
+                        <span class="form-label pc-text d-block small fw-bold mb-2">Indicadores de Vulnerabilidade</span>
+                        <div class="form-check form-check-lg mb-2">
+                            <input type="checkbox" class="form-check-input" name="has_elderly" id="elderlyFilter">
+                            <label class="form-check-label pc-text small" for="elderlyFilter">👵 Com idosos (>65 anos)</label>
+                        </div>
+                        <div class="form-check form-check-lg">
+                            <input type="checkbox" class="form-check-input" name="has_children" id="childrenFilter">
+                            <label class="form-check-label pc-text small" for="childrenFilter">👶 Com crianças (<12 anos)</label>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2">
+                        <div class="col-8">
+                            <button type="button" class="btn pc-btn-critical w-100 fw-bold text-uppercase" onclick="applyFilters()">
+                                <i class="bi bi-filter-circle-fill me-2"></i>Aplicar Matriz
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button type="button" class="btn btn-outline-light w-100 fw-bold text-uppercase small text-white" onclick="resetFilters()">
+                                Limpar
+                            </button>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
-    </div>
-    
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0">⬇️ Exportar</h5>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a id="csvExport" href="#" class="btn btn-outline-primary" download>
-                        📄 Exportar para CSV
-                    </a>
-                    <a id="pdfExport" href="#" class="btn btn-outline-danger" download>
-                        📕 Exportar para PDF
-                    </a>
+        
+        <div class="col-lg-7 d-flex flex-column gap-4">
+            <div class="pc-panel p-4 flex-grow-1" style="border: 1px solid var(--pc-border-color, rgba(255,255,255,0.1));">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-download text-success fs-4 me-2"></i>
+                    <h5 class="pc-text fw-bold mb-0">Extração de Ficheiros</h5>
                 </div>
-                <small class="text-muted d-block mt-2">
-                    * Os filtros aplicados serão usados na exportação
+                <p class="pc-text-muted small mb-4">Os ficheiros gerados herdarão automaticamente os filtros definidos ao lado.</p>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <a id="csvExport" href="#" class="btn btn-outline-success w-100 py-3 fw-bold text-uppercase d-flex align-items-center justify-content-center" download>
+                            <i class="bi bi-filetype-csv fs-4 me-2"></i>Exportar Matriz CSV
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a id="pdfExport" href="#" class="btn btn-outline-danger w-100 py-3 fw-bold text-uppercase d-flex align-items-center justify-content-center" download>
+                            <i class="bi bi-filetype-pdf fs-4 me-2"></i>Sumário Técnico PDF
+                        </a>
+                    </div>
+                </div>
+                <small class="pc-text-muted d-block mt-3 text-center small">
+                    <i class="bi bi-info-circle me-1"></i> Formato ideal para auditoria externa ou integração em sistemas SIG de Proteção Civil.
                 </small>
             </div>
-        </div>
-        
-        <div class="card mt-3">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">📈 Resumo Rápido</h5>
-            </div>
-            <div class="card-body">
-                <div id="summaryStats">
-                    <p class="text-muted">Aguardando filtros...</p>
+            
+            <div class="pc-panel p-4" style="border: 1px solid var(--pc-border-color, rgba(255,255,255,0.1));">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-bar-chart-fill text-info fs-4 me-2"></i>
+                    <h5 class="pc-text fw-bold mb-0">Métricas Consolidadas (Segmentadas)</h5>
+                </div>
+                
+                <div id="summaryStats" class="p-3 rounded" style="background: rgba(0,0,0,0.15); border: 1px solid var(--pc-border-color, rgba(255,255,255,0.05));">
+                    <div class="text-center py-3">
+                        <span class="spinner-border spinner-border-sm pc-text-muted me-2" role="status"></span>
+                        <span class="pc-text-muted small">A consultar servidores centrais...</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -86,12 +112,6 @@
 
 {% block extra_scripts %}
 <script>
-// Funções simples para interação com a API
-function getAuthHeader() {
-    const token = localStorage.getItem('access_token');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
-}
-
 function buildQueryParams() {
     const params = new URLSearchParams();
     const material = document.getElementById('materialFilter').value;
@@ -100,8 +120,8 @@ function buildQueryParams() {
     const status = document.getElementById('statusFilter').value;
     
     if (material) params.append('material', material);
-    if (document.getElementById('elderlyFilter').checked) params.append('has_elderly', 'true');
-    if (document.getElementById('childrenFilter').checked) params.append('has_children', 'true');
+    if (has_elderly) params.append('has_elderly', 'true');
+    if (has_children) params.append('has_children', 'true');
     if (status) params.append('status', status);
     
     return params.toString();
@@ -110,31 +130,66 @@ function buildQueryParams() {
 function applyFilters() {
     const queryParams = buildQueryParams();
     
-    // Atualizar links de exportação
+    // Atualizar endpoints dinâmicos de exportação
     document.getElementById('csvExport').href = `/reports/export/csv?${queryParams}`;
     document.getElementById('pdfExport').href = `/reports/export/pdf?${queryParams}`;
     
-    // Carregar resumo estatístico
-    fetch(`/reports/summary?${queryParams}`, { headers: getAuthHeader() })
-        .then(res => res.json())
+    const statsContainer = document.getElementById('summaryStats');
+    
+    // Fazer chamada à API herdando os cabeçalhos centrais do base.html
+    const authHeaders = typeof window.getAuthHeaders === 'function' ? window.getAuthHeaders() : {};
+
+    fetch(`/reports/summary?${queryParams}`, { headers: authHeaders })
+        .then(res => {
+            if (!res.ok) throw new Error('Falha na resposta do servidor');
+            return res.json();
+        })
         .then(data => {
-            const stats = document.getElementById('summaryStats');
-            stats.innerHTML = `
-                <p><strong>Total:</strong> ${data.total} registos</p>
-                <p><strong>Com idosos:</strong> ${data.vulnerability.with_elderly}</p>
-                <p><strong>Com crianças:</strong> ${data.vulnerability.with_children}</p>
-                <p><strong>Validados:</strong> ${data.by_status.validado}</p>
+            statsContainer.innerHTML = `
+                <div class="row g-3 text-center">
+                    <div class="col-sm-3">
+                        <div class="p-2 rounded bg-dark border border-secondary">
+                            <small class="pc-text-muted d-block text-uppercase" style="font-size:10px;">Total Registos</small>
+                            <span class="pc-text fs-5 fw-bold">${data.total || 0}</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="p-2 rounded bg-dark border border-secondary">
+                            <small class="pc-text-muted d-block text-uppercase" style="font-size:10px;">👵 Com Idosos</small>
+                            <span class="text-warning fs-5 Bars fw-bold">${data.vulnerability?.with_elderly || 0}</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="p-2 rounded bg-dark border border-secondary">
+                            <small class="pc-text-muted d-block text-uppercase" style="font-size:10px;">👶 Com Crianças</small>
+                            <span class="text-info fs-5 fw-bold">${data.vulnerability?.with_children || 0}</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="p-2 rounded bg-dark border border-secondary">
+                            <small class="pc-text-muted d-block text-uppercase" style="font-size:10px;">🛡️ Validados</small>
+                            <span class="text-success fs-5 fw-bold">${data.by_status?.validado || 0}</span>
+                        </div>
+                    </div>
+                </div>
             `;
         })
-        .catch(err => console.error('Erro ao carregar resumo:', err));
+        .catch(err => {
+            console.error('Erro ao carregar resumo estatístico:', err);
+            statsContainer.innerHTML = `
+                <div class="text-danger small text-center fw-bold py-2">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Erro de comunicação com o servidor de dados.
+                </div>
+            `;
+        });
 }
 
 function resetFilters() {
     document.getElementById('filterForm').reset();
-    applyFilters(); // Recarregar com filtros limpos
+    applyFilters();
 }
 
-// Inicializar com filtros padrão
+// Execução imediata na carga da DOM
 document.addEventListener('DOMContentLoaded', applyFilters);
 </script>
 {% endblock %}

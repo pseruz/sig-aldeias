@@ -2,24 +2,28 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid d-flex justify-content-center align-items-center" style="min-height: 80vh; background-color: var(--pc-bg-main);">
-    <div class="pc-panel p-4 shadow-lg" style="max-width: 400px; width: 100%; border-radius: 12px;">
+<div class="container-fluid d-flex justify-content-center align-items-center" style="min-height: 85vh; background-color: var(--pc-bg-main);">
+    <div class="pc-panel p-4 shadow-lg" style="max-width: 400px; width: 100%; border: 1px solid var(--pc-border-color, rgba(255,255,255,0.1));">
         <div class="text-center mb-4">
-            <h2 class="pc-text fw-bold">SIG-Aldeias</h2>
+            <h2 class="pc-text fw-bold mb-1" style="letter-spacing: 1px;">SIG-Aldeias</h2>
             <p class="pc-text-muted small">Acesso Restrito à Plataforma Operacional</p>
         </div>
 
         <form id="login-form" onsubmit="handleLogin(event)">
             <div class="mb-3">
-                <label for="email" class="form-label pc-text">Email</label>
+                <label for="email" class="form-label pc-text small fw-bold">Email Operacional</label>
                 <input type="email" class="form-control pc-input" id="email" placeholder="admin@pc.pt" required>
             </div>
             <div class="mb-4">
-                <label for="password" class="form-label pc-text">Password</label>
+                <label for="password" class="form-label pc-text small fw-bold">Chave de Acesso</label>
                 <input type="password" class="form-control pc-input" id="password" placeholder="••••••••" required>
             </div>
-            <button type="submit" class="btn pc-btn-critical w-100 py-2 fw-bold">ENTRAR</button>
-            <p id="login-error" class="text-danger mt-2 small text-center d-none">Credenciais inválidas.</p>
+            <button type="submit" class="btn pc-btn-critical w-100 py-2 fw-bold text-uppercase" style="letter-spacing: 0.5px;">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
+            </button>
+            <p id="login-error" class="text-danger mt-3 small text-center d-none fw-bold">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> Credenciais inválidas.
+            </p>
         </form>
     </div>
 </div>
@@ -33,12 +37,13 @@ async function handleLogin(e) {
     const btn = e.target.querySelector('button');
 
     btn.disabled = true;
-    btn.innerText = "A autenticar...";
+    const originalText = btn.innerHTML;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>A autenticar...`;
     errorMsg.classList.add('d-none');
 
     try {
         const formData = new URLSearchParams();
-        formData.append('username', email); // FastAPI OAuth2 espera 'username'
+        formData.append('username', email);
         formData.append('password', password);
 
         const response = await fetch('/auth/login', { method: 'POST', body: formData });
@@ -50,12 +55,13 @@ async function handleLogin(e) {
         } else {
             errorMsg.classList.remove('d-none');
             btn.disabled = false;
-            btn.innerText = "ENTRAR";
+            btn.innerHTML = originalText;
         }
     } catch (err) {
-        errorMsg.innerText = "Erro de conexão.";
+        errorMsg.innerText = "Erro de conexão com o servidor central.";
         errorMsg.classList.remove('d-none');
         btn.disabled = false;
+        btn.innerHTML = originalText;
     }
 }
 </script>
