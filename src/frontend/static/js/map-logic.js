@@ -1,4 +1,4 @@
-// js/map-logic.js — Versão Final com Melhorias Completas + Infraestruturas BIM
+// js/map-logic.js — Versão Final Corrigida (Pontos sempre visíveis, Polígonos só com filtros)
 
 const STATUS_COLORS = {
     pendente: '#DC3545',
@@ -23,7 +23,6 @@ const MOCK_FLOOD_ZONES = [
     [[40.212, -8.038], [40.220, -8.028], [40.228, -8.035], [40.212, -8.038]],
 ];
 
-// ✅ NOVO: Zonas Florestais (manchas verdes)
 const MOCK_FOREST_ZONES = [
     [[40.225, -8.065], [40.230, -8.060], [40.228, -8.055], [40.223, -8.058]],
     [[40.215, -8.045], [40.218, -8.040], [40.216, -8.038], [40.213, -8.042]],
@@ -46,8 +45,20 @@ const MOCK_STREETS = {
 
 window._streetLayer = null;
 window._infraMarkersLayer = null;
-window.forestLayer = null; // ✅ NOVO
-window.infrastructuresLayer = null; // ✅ NOVO: Camada para infraestruturas BIM
+window.forestLayer = null;
+window.infrastructuresLayer = null;
+
+// =========================================================================
+// ✅ VARIÁVEIS DE MODO DE EDIÇÃO
+// =========================================================================
+let editMode = {
+    active: false,
+    type: null, // 'point' ou 'polygon'
+    layerType: null, // 'hydrant', 'public_building', 'fire_zone', etc.
+    drawingLayer: null,
+    tempMarkers: [],
+    tempPolygon: null
+};
 
 function drawStreet(key) {
     if (!map) return;
@@ -71,7 +82,6 @@ function drawStreet(key) {
     map.fitBounds(window._streetLayer.getBounds(), { padding: [50, 50] });
 }
 
-// ✅ NOVO: Desenhar zonas florestais
 function drawForestZones(enabled) {
     if (!map) return;
     if (window.forestLayer) {
@@ -159,6 +169,34 @@ function applyRoleUI(role) {
     if (isTecnico) {
         const registoBtn = document.querySelector('a[href="/registo"]');
         if (registoBtn) registoBtn.classList.remove('d-none');
+    }
+
+    // ✅ CONTROLO DE ACESSO: Edição só para comando (admin/coordenador)
+    const editSection = document.querySelector('#panel-filters .p-2.rounded.mb-3[style*="border: 1px solid rgba(255,193,7,0.2)"]');
+    
+    if (editSection) {
+        const isCommandRole = (role === 'admin' || role === 'coordenador');
+        
+        console.log('🔍 Debug Edição:', {
+            role: role,
+            isCommandRole: isCommandRole,
+            editSectionFound: !!editSection
+        });
+        
+        // Mostrar apenas se for admin ou coordenador
+        if (isCommandRole) {
+            editSection.style.display = 'block';
+            const editTitle = editSection.previousElementSibling;
+            if (editTitle && editTitle.textContent.includes('Edição no Mapa')) {
+                editTitle.style.display = 'block';
+            }
+        } else {
+            editSection.style.display = 'none';
+            const editTitle = editSection.previousElementSibling;
+            if (editTitle && editTitle.textContent.includes('Edição no Mapa')) {
+                editTitle.style.display = 'none';
+            }
+        }
     }
 }
 
@@ -344,7 +382,6 @@ function renderInfrastructurePanel(household) {
     }
 
     const infra = household.infrastructures;
-    // ✅ NOVOS ÍCONES: SVG para símbolos de emergência
     const labels = {
         emergency_doors: { 
             name: 'Saídas de Emergência', 
@@ -746,7 +783,7 @@ function refreshOperationalLayers() {
     drawRiskZones(Boolean(document.getElementById('toggle-risk')?.checked));
     drawIncendioZones(Boolean(document.getElementById('toggle-fire')?.checked));
     drawFloodZones(Boolean(document.getElementById('toggle-flood')?.checked));
-    drawForestZones(Boolean(document.getElementById('toggle-forest')?.checked)); // ✅ NOVO
+    drawForestZones(Boolean(document.getElementById('toggle-forest')?.checked));
 }
 
 function createCustomMarker(lat, lon, household) {
@@ -756,13 +793,11 @@ function createCustomMarker(lat, lon, household) {
     marker.household = household;
     marker.bindPopup(formatPopup(household));
 
-    // Clique simples: abrir detalhes
     marker.on('click', () => {
         marker.openPopup();
         abrirDetalhe(household);
     });
     
-    // ✅ NOVO: Duplo clique: abrir ficha técnica
     marker.on('dblclick', () => {
         openFicha(household.id);
     });
@@ -819,7 +854,6 @@ async function loadHouseholdMarkers() {
         if (bounds.length === 1) map.setView(bounds[0], 15);
         else if (bounds.length > 1) map.fitBounds(bounds, { padding: [40, 40] });
 
-        // ✅ ADICIONAR: Atualizar alertas e zonas de risco
         updateAlertsAndRisk(households);
 
         refreshOperationalLayers();
@@ -840,7 +874,7 @@ async function loadPendingMarkers() {
 }
 
 // =========================================================================
-// ✅ NOVO: CARREGAR INFRAESTRUTURAS BIM (Bocas de Incêndio, Edifícios Públicos, etc.)
+// ✅ CARREGAR INFRAESTRUTURAS (Pontos - Sempre visíveis)
 // =========================================================================
 async function carregarInfraestruturas() {
     try {
@@ -854,65 +888,420 @@ async function carregarInfraestruturas() {
         }
         
         const infraestruturas = await response.json();
-        console.log(`✅ ${infraestruturas.length} infraestruturas BIM carregadas`);
+        console.log(`✅ ${infraestruturas.length} infraestruturas carregadas`);
         
-        // Criar camada para infraestruturas
-        window.infrastructuresLayer = L.layerGroup().addTo(map);
+        if (window.infrastructuresLayer && map) {
+            map.removeLayer(window.infrastructuresLayer);
+        }
         
-        // Iterar sobre cada infraestrutura
+        window.infrastructuresLayer = L.layerGroup();
+        if (map) {
+            window.infrastructuresLayer.addTo(map);
+        }
+        
         infraestruturas.forEach(infra => {
-            // Extrair coordenadas do WKT "POINT(lng lat)"
-            const match = infra.geometry.match(/POINT\(([-\d.]+)\s+([-\d.]+)\)/);
-            if (!match) {
-                console.warn('Geometria inválida:', infra.geometry);
+            if (!infra.geometry) {
+                console.warn('⚠️ Infraestrutura sem geometria ignorada:', infra.name);
                 return;
             }
-            
-            const lng = parseFloat(match[1]);
-            const lat = parseFloat(match[2]);
-            
-            // Definir ícone baseado no tipo
-            let iconUrl;
-            let iconSize = [25, 41];
-            
-            if (infra.layer_type === 'hydrant') {
-                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png';
-            } else if (infra.layer_type === 'public_building') {
-                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-violet.png';
-                iconSize = [30, 50];
-            } else if (infra.layer_type === 'meeting_point') {
-                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png';
-            } else if (infra.layer_type === 'evacuation_route') {
-                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png';
-            } else {
-                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png';
+
+            try {
+                const geom = infra.geometry.trim().toUpperCase();
+                
+                // ✅ APENAS PONTOS - Polígonos são carregados separadamente
+                if (geom.startsWith('POINT(')) {
+                    const match = infra.geometry.match(/POINT\(([-\d.]+)\s+([-\d.]+)\)/);
+                    if (!match) return;
+                    
+                    const lng = parseFloat(match[1]);
+                    const lat = parseFloat(match[2]);
+                    
+                    let iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png';
+                    let iconSize = [25, 41];
+                    
+                    if (infra.layer_type === 'hydrant') iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png';
+                    else if (infra.layer_type === 'public_building') { iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-violet.png'; iconSize = [30, 50]; }
+                    else if (infra.layer_type === 'meeting_point') iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png';
+                    
+                    const customIcon = L.icon({
+                        iconUrl: iconUrl, iconSize: iconSize, iconAnchor: [12, 41], popupAnchor: [1, -34]
+                    });
+                    
+                    const marker = L.marker([lat, lng], { icon: customIcon })
+                        .bindPopup(`<b>${infra.name}</b><br><small>${infra.description || infra.layer_type}</small>`)
+                        .addTo(window.infrastructuresLayer);
+
+                    // ✅ Adicionar clique para editar/eliminar (apenas para comando)
+                    const userRole = getUserRole();
+                    if (userRole === 'admin' || userRole === 'coordenador') {
+                        marker.on('click', () => {
+                            mostrarOpcoesInfraestrutura(
+                                infra.id,
+                                infra.name,
+                                infra.layer_type,
+                                infra.geometry,
+                                infra.description
+                            );
+                        });
+                    }  
+                }
+                // ❌ POLÍGONOS são ignorados aqui - carregados por carregarCamadasOperacionais()
+            } catch (err) {
+                console.error('Erro ao processar infraestrutura:', infra.name, err);
             }
-            
-            const customIcon = L.icon({
-                iconUrl: iconUrl,
-                iconSize: iconSize,
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34]
-            });
-            
-            // Criar marcador
-            const marker = L.marker([lat, lng], { icon: customIcon })
-                .bindPopup(`
-                    <div style="min-width: 200px;">
-                        <h4 style="margin: 0 0 8px 0; color: #2c3e50;">${infra.name}</h4>
-                        <p style="margin: 4px 0; font-size: 12px;">
-                            <strong>Tipo:</strong> ${infra.layer_type}<br>
-                            <strong>Descrição:</strong> ${infra.description || 'N/A'}<br>
-                            <strong>Estado:</strong> ${infra.status}
-                        </p>
-                    </div>
-                `)
-                .addTo(window.infrastructuresLayer);
         });
         
     } catch (error) {
-        console.error('Erro ao carregar infraestruturas:', error);
+        console.error('Erro geral ao carregar infraestruturas:', error);
     }
+}
+
+// =========================================================================
+// ✅ CARREGAR CAMADAS OPERACIONAIS (Polígonos - Só quando ativadas)
+// =========================================================================
+async function carregarCamadasOperacionais(tipoCamada) {
+    try {
+        const response = await fetch('/infrastructures/', {
+            headers: { Accept: 'application/json' }
+        });
+        
+        if (!response.ok) return;
+        
+        const infraestruturas = await response.json();
+        
+        // Remover camada anterior deste tipo
+        const layerName = `operationalLayer_${tipoCamada}`;
+        if (window[layerName] && map) {
+            map.removeLayer(window[layerName]);
+        }
+        
+        // Filtrar apenas polígonos do tipo solicitado
+        const poligonos = infraestruturas.filter(infra => {
+            if (!infra.geometry) return false;
+            const geom = infra.geometry.trim().toUpperCase();
+            return geom.startsWith('POLYGON(') && infra.layer_type === tipoCamada;
+        });
+        
+        if (poligonos.length === 0) {
+            console.log(`ℹ️ Sem ${tipoCamada} para mostrar`);
+            return;
+        }
+        
+        // Criar nova camada
+        window[layerName] = L.layerGroup();
+        if (map) {
+            window[layerName].addTo(map);
+        }
+        
+        // Cores por tipo de camada
+        const cores = {
+            'fire_zone': { color: '#DC3545', fillColor: '#DC3545', label: '🔥 Zona de Incêndio' },
+            'flood_zone': { color: '#0D6EFD', fillColor: '#0D6EFD', label: '🌊 Zona de Cheia' },
+            'forest_zone': { color: '#198754', fillColor: '#198754', label: '🌲 Zona Florestal' },
+            'evacuation_route': { color: '#FFC107', fillColor: '#FFC107', label: '🛣️ Rota de Evacuação' }
+        };
+        
+        const cor = cores[tipoCamada] || { color: '#6C757D', fillColor: '#6C757D', label: 'Zona' };
+        
+        poligonos.forEach(infra => {
+            try {
+                const coordsMatch = infra.geometry.match(/POLYGON\(\((.*?)\)\)/i);
+                if (!coordsMatch) return;
+                
+                const coordsString = coordsMatch[1];
+                const latlngs = coordsString.split(',').map(coord => {
+                    const parts = coord.trim().split(/\s+/);
+                    return [parseFloat(parts[1]), parseFloat(parts[0])];
+                });
+
+                const polygon = L.polygon(latlngs, {
+                    color: cor.color,
+                    fillColor: cor.fillColor,
+                    fillOpacity: 0.3,
+                    weight: 2
+                })
+                .bindPopup(`<b>${cor.label}</b><br><small>${infra.name}</small><br><em>${infra.description || ''}</em>`)
+                .addTo(window[layerName]);
+
+                // ✅ Adicionar clique para editar/eliminar (apenas para comando)
+                const userRole = getUserRole();
+                if (userRole === 'admin' || userRole === 'coordenador') {
+                    polygon.on('click', () => {
+                        mostrarOpcoesInfraestrutura(
+                            infra.id,
+                            infra.name,
+                            infra.layer_type,
+                            infra.geometry,
+                            infra.description
+                        );
+                    });
+                }
+                
+            } catch (err) {
+                console.error(`Erro ao processar ${tipoCamada}:`, infra.name, err);
+            }
+        });
+        
+        console.log(`✅ ${poligonos.length} ${tipoCamada} carregadas`);
+        
+    } catch (error) {
+        console.error(`Erro ao carregar ${tipoCamada}:`, error);
+    }
+}
+
+// =========================================================================
+// ✅ FUNÇÕES DE EDIÇÃO NO MAPA
+// =========================================================================
+function ativarModoEdicao(tipo, layerType) {
+    editMode.active = true;
+    editMode.type = tipo;
+    editMode.layerType = layerType;
+    editMode.tempMarkers = [];
+    map.getContainer().style.cursor = 'crosshair';
+    const msg = tipo === 'point' 
+        ? `📍 Clique no mapa para adicionar ${getLayerTypeName(layerType)}`
+        : `✏️ Clique para adicionar vértices. Duplo clique para fechar a zona`;
+    showEditModeMessage(msg);
+    map.on('click', handleMapClickEdit);
+    map.on('dblclick', handleMapDblClickEdit);
+}
+
+function desativarModoEdicao() {
+    editMode.active = false;
+    editMode.type = null;
+    editMode.layerType = null;
+    map.getContainer().style.cursor = '';
+    if (editMode.drawingLayer) {
+        map.removeLayer(editMode.drawingLayer);
+        editMode.drawingLayer = null;
+    }
+    editMode.tempMarkers.forEach(marker => map.removeLayer(marker));
+    editMode.tempMarkers = [];
+    map.off('click', handleMapClickEdit);
+    map.off('dblclick', handleMapDblClickEdit);
+    hideEditModeMessage();
+}
+
+function getLayerTypeName(layerType) {
+    const names = {
+        'hydrant': 'Boca de Incêndio', 'public_building': 'Edifício Público',
+        'meeting_point': 'Ponto de Encontro', 'fire_zone': 'Zona de Incêndio',
+        'flood_zone': 'Zona de Cheia', 'forest_zone': 'Zona Florestal'
+    };
+    return names[layerType] || layerType;
+}
+
+function showEditModeMessage(msg) {
+    let msgEl = document.getElementById('edit-mode-message');
+    if (!msgEl) {
+        msgEl = document.createElement('div');
+        msgEl.id = 'edit-mode-message';
+        msgEl.style.cssText = `position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #FFC107; color: #000; padding: 12px 24px; border-radius: 8px; font-weight: bold; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.3);`;
+        document.body.appendChild(msgEl);
+    }
+    msgEl.textContent = msg;
+    msgEl.style.display = 'block';
+}
+
+function hideEditModeMessage() {
+    const msgEl = document.getElementById('edit-mode-message');
+    if (msgEl) msgEl.style.display = 'none';
+}
+
+async function handleMapClickEdit(e) {
+    if (!editMode.active) return;
+    const { lat, lng } = e.latlng;
+    if (editMode.type === 'point') await criarPontoNoMapa(lat, lng);
+    else if (editMode.type === 'polygon') adicionarVerticePoligono(lat, lng);
+}
+
+async function handleMapDblClickEdit(e) {
+    if (!editMode.active || editMode.type !== 'polygon') return;
+    if (editMode.tempMarkers.length < 3) {
+        alert('⚠️ Um polígono precisa de pelo menos 3 vértices!');
+        return;
+    }
+    await fecharEGuardarPoligono();
+}
+
+async function criarPontoNoMapa(lat, lng) {
+    const nome = prompt(`📍 ${getLayerTypeName(editMode.layerType)}\n\nNome/Identificação:`);
+    if (!nome) { desativarModoEdicao(); return; }
+    const descricao = prompt('Descrição (opcional):') || '';
+    const wkt = `POINT(${lng} ${lat})`;
+    try {
+        const response = await fetch('/infrastructures/', {
+            method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({ name: nome, layer_type: editMode.layerType, geometry: wkt, description: descricao, status: 'ACTIVE' })
+        });
+        if (response.ok) { alert('✅ Criado com sucesso!'); await carregarInfraestruturas(); } 
+        else { const err = await response.json(); alert(`❌ Erro: ${err.detail || 'Falha'}`); }
+    } catch (error) { alert('❌ Erro de conexão'); }
+    desativarModoEdicao();
+}
+
+function adicionarVerticePoligono(lat, lng) {
+    const marker = L.circleMarker([lat, lng], { radius: 6, fillColor: '#FFC107', color: '#000', weight: 2, fillOpacity: 0.8 }).addTo(map);
+    editMode.tempMarkers.push(marker);
+    if (editMode.tempPolygon) map.removeLayer(editMode.tempPolygon);
+    const latlngs = editMode.tempMarkers.map(m => m.getLatLng());
+    editMode.tempPolygon = L.polygon(latlngs, { color: '#FFC107', fillColor: '#FFC107', fillOpacity: 0.3, weight: 2, dashArray: '5, 5' }).addTo(map);
+}
+
+// =========================================================================
+// ✅ EDITAR E ELIMINAR INFRAESTRUTURAS EXISTENTES
+// =========================================================================
+
+// Abrir popup de edição com opções
+function mostrarOpcoesInfraestrutura(infraId, infraNome, infraType, infraGeometry, infraDescription) {
+    // Remover popup anterior se existir
+    const existingPopup = document.getElementById('infra-edit-popup');
+    if (existingPopup) existingPopup.remove();
+    
+    // Criar popup
+    const popup = document.createElement('div');
+    popup.id = 'infra-edit-popup';
+    popup.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #1a2332;
+        border: 2px solid #FFC107;
+        border-radius: 12px;
+        padding: 20px;
+        z-index: 10000;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        min-width: 300px;
+        color: #fff;
+    `;
+    
+    popup.innerHTML = `
+        <h5 style="color: #FFC107; margin-bottom: 15px;">
+            <i class="bi bi-gear-fill me-2"></i>${infraNome}
+        </h5>
+        <p style="font-size: 12px; color: #aaa; margin-bottom: 20px;">
+            Tipo: ${getLayerTypeName(infraType)}<br>
+            Descrição: ${infraDescription || 'N/A'}
+        </p>
+        <div class="d-grid gap-2">
+            <button type="button" class="btn btn-sm btn-outline-warning" id="btn-edit-infra">
+                <i class="bi bi-pencil me-2"></i>Editar
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger" id="btn-delete-infra">
+                <i class="bi bi-trash me-2"></i>Eliminar
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary" id="btn-close-popup">
+                <i class="bi bi-x-circle me-2"></i>Cancelar
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(popup);
+    
+    // Event listeners
+    document.getElementById('btn-edit-infra').addEventListener('click', () => {
+        popup.remove();
+        editarInfraestrutura(infraId, infraNome, infraType, infraGeometry, infraDescription);
+    });
+    
+    document.getElementById('btn-delete-infra').addEventListener('click', () => {
+        popup.remove();
+        eliminarInfraestrutura(infraId, infraNome);
+    });
+    
+    document.getElementById('btn-close-popup').addEventListener('click', () => {
+        popup.remove();
+    });
+}
+
+// Editar infraestrutura
+async function editarInfraestrutura(infraId, nomeAtual, layerType, geometry, description) {
+    const novoNome = prompt(`✏️ Editar Nome:\n\nNome atual: ${nomeAtual}\n\nNovo nome:`, nomeAtual);
+    if (!novoNome || novoNome === nomeAtual) return;
+    
+    const novaDescricao = prompt('✏️ Editar Descrição (opcional):', description || '') || '';
+    
+    try {
+        const response = await fetch(`/infrastructures/${infraId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            body: JSON.stringify({
+                name: novoNome,
+                description: novaDescricao
+            })
+        });
+        
+        if (response.ok) {
+            alert('✅ Infraestrutura atualizada com sucesso!');
+            // Recarregar camadas
+            await carregarInfraestruturas();
+            await carregarCamadasOperacionais(layerType);
+        } else {
+            const err = await response.json();
+            alert(`❌ Erro: ${err.detail || 'Falha ao atualizar'}`);
+        }
+    } catch (error) {
+        console.error('Erro ao editar:', error);
+        alert('❌ Erro de conexão ao servidor');
+    }
+}
+
+// Eliminar infraestrutura (já existe, mas vamos melhorar)
+async function eliminarInfraestrutura(infraId, nome) {
+    if (!confirm(`⚠️ ELIMINAR "${nome}"?\n\nEsta ação não pode ser desfeita.\n\nTens a certeza?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/infrastructures/${infraId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            alert('✅ Infraestrutura eliminada!');
+            // Recarregar tudo
+            await carregarInfraestruturas();
+            // Recarregar todas as camadas operacionais ativas
+            if (document.getElementById('toggle-fire')?.checked) {
+                await carregarCamadasOperacionais('fire_zone');
+            }
+            if (document.getElementById('toggle-flood')?.checked) {
+                await carregarCamadasOperacionais('flood_zone');
+            }
+            if (document.getElementById('toggle-forest')?.checked) {
+                await carregarCamadasOperacionais('forest_zone');
+            }
+        } else {
+            alert('❌ Erro ao eliminar');
+        }
+    } catch (error) {
+        console.error('Erro ao eliminar:', error);
+        alert('❌ Erro de conexão');
+    }
+}
+
+async function fecharEGuardarPoligono() {
+    const nome = prompt(`️ ${getLayerTypeName(editMode.layerType)}\n\nNome/Identificação:`);
+    if (!nome) { desativarModoEdicao(); return; }
+    const descricao = prompt('Descrição (opcional):') || '';
+    const coords = editMode.tempMarkers.map(m => { const ll = m.getLatLng(); return `${ll.lng} ${ll.lat}`; }).join(', ');
+    const wkt = `POLYGON((${coords}))`;
+    try {
+        const response = await fetch('/infrastructures/', {
+            method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify({ name: nome, layer_type: editMode.layerType, geometry: wkt, description: descricao, status: 'ACTIVE' })
+        });
+        if (response.ok) { alert('✅ Zona criada com sucesso!'); await carregarCamadasOperacionais(editMode.layerType); } 
+        else { const err = await response.json(); alert(`❌ Erro: ${err.detail || 'Falha'}`); }
+    } catch (error) { alert('❌ Erro de conexão'); }
+    editMode.tempMarkers.forEach(m => map.removeLayer(m));
+    if (editMode.tempPolygon) map.removeLayer(editMode.tempPolygon);
+    editMode.tempMarkers = []; editMode.tempPolygon = null;
+    desativarModoEdicao();
 }
 
 function initMap() {
@@ -940,6 +1329,84 @@ function initMap() {
     window.infrastructuresLayer = null;
 }
 
+// =========================================================================
+// ✅ SISTEMA DE NOTIFICAÇÕES TOAST
+// =========================================================================
+function showNotification(message, type = 'info') {
+    // Remover notificações anteriores
+    const existingNotifications = document.querySelectorAll('.pc-toast-notification');
+    existingNotifications.forEach(n => n.remove());
+    
+    // Criar toast
+    const toast = document.createElement('div');
+    toast.className = 'pc-toast-notification';
+    
+    // Cores por tipo
+    const colors = {
+        'success': { bg: '#198754', border: '#146c43', icon: '✅' },
+        'error': { bg: '#DC3545', border: '#b02a37', icon: '❌' },
+        'warning': { bg: '#FFC107', border: '#ffecb5', icon: '⚠️' },
+        'info': { bg: '#0D6EFD', border: '#0a58ca', icon: 'ℹ️' }
+    };
+    
+    const color = colors[type] || colors['info'];
+    
+    toast.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: ${color.bg};
+        color: white;
+        padding: 16px 24px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 10001;
+        font-weight: 600;
+        font-size: 14px;
+        border: 2px solid ${color.border};
+        animation: slideInRight 0.3s ease-out;
+        max-width: 400px;
+    `;
+    
+    toast.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 20px;">${color.icon}</span>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Adicionar animação CSS se não existir
+    if (!document.getElementById('toast-animation-style')) {
+        const style = document.createElement('style');
+        style.id = 'toast-animation-style';
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; transform: translateX(400px); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Remover após 4 segundos
+    setTimeout(() => {
+        toast.style.animation = 'fadeOut 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
 function wireMapControls() {
     document.getElementById('btn-refresh-map')?.addEventListener('click', () => loadHouseholdMarkers());
     document.getElementById('btn-load-pending')?.addEventListener('click', () => loadPendingMarkers());
@@ -950,13 +1417,99 @@ function wireMapControls() {
 
     document.getElementById('street-filter')?.addEventListener('change', (e) => drawStreet(e.target.value));
 
+    // ✅ CAMADAS OPERACIONAIS - Só carregam quando ativadas
+    document.getElementById('toggle-fire')?.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            carregarCamadasOperacionais('fire_zone');
+        } else {
+            if (window.operationalLayer_fire_zone && map) {
+                map.removeLayer(window.operationalLayer_fire_zone);
+            }
+        }
+    });
+    
+    document.getElementById('toggle-flood')?.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            carregarCamadasOperacionais('flood_zone');
+        } else {
+            if (window.operationalLayer_flood_zone && map) {
+                map.removeLayer(window.operationalLayer_flood_zone);
+            }
+        }
+    });
+    
+    document.getElementById('toggle-forest')?.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            carregarCamadasOperacionais('forest_zone');
+        } else {
+            if (window.operationalLayer_forest_zone && map) {
+                map.removeLayer(window.operationalLayer_forest_zone);
+            }
+        }
+    });
+    
     document.getElementById('toggle-evacuation')?.addEventListener('change', (e) =>
         drawEvacuationRoutes(e.target.checked)
     );
     document.getElementById('toggle-risk')?.addEventListener('change', (e) => drawRiskZones(e.target.checked));
-    document.getElementById('toggle-fire')?.addEventListener('change', (e) => drawIncendioZones(e.target.checked));
-    document.getElementById('toggle-flood')?.addEventListener('change', (e) => drawFloodZones(e.target.checked));
-    document.getElementById('toggle-forest')?.addEventListener('change', (e) => drawForestZones(e.target.checked)); // ✅ NOVO
+    
+    // ✅ BOTÕES DE EDIÇÃO
+    document.getElementById('btn-add-hydrant')?.addEventListener('click', () => ativarModoEdicao('point', 'hydrant'));
+    document.getElementById('btn-add-building')?.addEventListener('click', () => ativarModoEdicao('point', 'public_building'));
+    document.getElementById('btn-add-meeting-point')?.addEventListener('click', () => ativarModoEdicao('point', 'meeting_point'));
+    document.getElementById('btn-add-fire-zone')?.addEventListener('click', () => ativarModoEdicao('polygon', 'fire_zone'));
+    document.getElementById('btn-add-flood-zone')?.addEventListener('click', () => ativarModoEdicao('polygon', 'flood_zone'));
+    document.getElementById('btn-add-forest-zone')?.addEventListener('click', () => ativarModoEdicao('polygon', 'forest_zone'));
+    document.getElementById('btn-cancel-edit')?.addEventListener('click', () => desativarModoEdicao());
+    
+    // ✅ LÓGICA DE UPLOAD BIM (Nova secção)
+    const btnUploadBim = document.getElementById('btn-upload-bim');
+    const inputBimFile = document.getElementById('bim-file-input');
+
+    if (btnUploadBim && inputBimFile) {
+        // Quando clica no botão, simula o clique no input de ficheiro escondido
+        btnUploadBim.addEventListener('click', () => {
+            inputBimFile.click();
+        });
+
+        // Quando o utilizador seleciona um ficheiro
+        inputBimFile.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Mostrar notificação de "A processar..."
+            showNotification(`A processar ${file.name}...`, 'info');
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/infrastructures/upload-geojson', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showNotification(`✅ ${result.imported_count} elementos BIM importados com sucesso!`, 'success');
+                    
+                    // Recarregar as camadas para mostrar os novos dados
+                    await carregarInfraestruturas();
+                    if (document.getElementById('toggle-fire')?.checked) await carregarCamadasOperacionais('fire_zone');
+                    if (document.getElementById('toggle-flood')?.checked) await carregarCamadasOperacionais('flood_zone');
+                    if (document.getElementById('toggle-forest')?.checked) await carregarCamadasOperacionais('forest_zone');
+                } else {
+                    showNotification('❌ Erro ao importar ficheiro. Verifica o formato.', 'error');
+                }
+            } catch (error) {
+                console.error('Erro no upload BIM:', error);
+                showNotification('❌ Erro de conexão ao servidor.', 'error');
+            }
+            
+            // Limpar o input para permitir carregar o mesmo ficheiro novamente se necessário
+            e.target.value = '';
+        });
+    }
 }
 
 function abrirDetalhe(nomeOuHousehold) {
@@ -1019,7 +1572,6 @@ function renderPendingList(households) {
 
     const pending = households.filter(h => h.status === 'pendente');
     
-    // ÍCONES SVG com tooltip customizado
     const infraIcons = {
         emergency_doors: {
             svg: '<svg width="18" height="18" viewBox="0 0 24 24" fill="#0D6EFD"><path d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-2-4C6.48 3 3 6.48 3 11c0 2.03.76 3.87 2 5.28V20c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2v-3.72c1.24-1.41 2-3.25 2-5.28 0-4.52-3.48-8-8-8z"/></svg>',
@@ -1104,19 +1656,16 @@ function renderPendingList(households) {
         </div>
     `;
     
-    // Substituir apenas o container de validação
     const container = document.getElementById('validation-drawer-container');
     if (container) {
         container.innerHTML = html;
     } else {
-        // Fallback: tentar substituir no validation-panel diretamente
         const panelContent = panel.querySelector('#drawer');
         if (panelContent) {
             panel.innerHTML = html;
         }
     }
     
-    // Adicionar event listeners
     if (pending.length > 0) {
         document.querySelectorAll('.pc-pending-item').forEach(item => {
             item.addEventListener('click', () => {
@@ -1132,7 +1681,6 @@ function renderPendingList(households) {
                 }
             });
             
-            // Duplo clique para abrir ficha
             item.addEventListener('dblclick', () => {
                 const id = parseInt(item.dataset.householdId);
                 window.location.href = `/ficha/${id}`;
@@ -1147,13 +1695,9 @@ loadHouseholdMarkers = async function() {
     renderPendingList(lastHouseholds);
 };
 
-// =========================================================================
-// ✅ REDIMENSIONAMENTO DOS PAINÉIS LATERAIS (JavaScript)
-// =========================================================================
 function initPanelResizing() {
     const handles = document.querySelectorAll('.pc-resize-handle');
     
-    // ✅ Estado global para o resize (evita listeners duplicados)
     let resizeState = {
         isResizing: false,
         startX: 0,
@@ -1163,11 +1707,10 @@ function initPanelResizing() {
         direction: null
     };
     
-    // ✅ Adicionar listeners APENAS UMA VEZ ao document
     document.addEventListener('mousemove', (e) => {
         if (!resizeState.isResizing || !resizeState.panel) return;
         
-        e.preventDefault(); // ✅ Prevenir seleção de texto
+        e.preventDefault();
         
         const deltaX = resizeState.direction === 'left' 
             ? e.clientX - resizeState.startX 
@@ -1175,12 +1718,10 @@ function initPanelResizing() {
         
         const newWidth = resizeState.startWidth + deltaX;
         
-        // Limitar entre 200px e 500px
         if (newWidth >= 200 && newWidth <= 500) {
             resizeState.panel.style.width = newWidth + 'px';
             resizeState.panel.style.flex = 'none';
             
-            // Forçar Leaflet a recalcular o tamanho do mapa
             if (map) {
                 requestAnimationFrame(() => map.invalidateSize());
             }
@@ -1201,7 +1742,6 @@ function initPanelResizing() {
         }
     });
     
-    // ✅ Adicionar listener a cada handle
     handles.forEach(handle => {
         handle.addEventListener('mousedown', (e) => {
             resizeState.isResizing = true;
@@ -1223,22 +1763,16 @@ function initPanelResizing() {
     });
 }
 
-// =========================================================================
-// ✅ GESTÃO DE ALERTAS E ZONAS DE RISCO (Tempo Real)
-// =========================================================================
-
-// Dados mockados de alertas (substituir por API real)
 let activeAlerts = [
     {
         id: 1,
         householdName: 'Família Silva',
         type: 'Evacuação Urgente',
-        timestamp: new Date(Date.now() - 2 * 60 * 1000), // 2 minutos atrás
+        timestamp: new Date(Date.now() - 2 * 60 * 1000),
         priority: 'high'
     }
 ];
 
-// Calcular zonas de risco baseado nos agregados
 function calculateRiskZones(households) {
     const risk = { high: 0, medium: 0, low: 0 };
     
@@ -1255,7 +1789,6 @@ function calculateRiskZones(households) {
     return risk;
 }
 
-// Renderizar alertas ativos
 function renderActiveAlerts() {
     const container = document.getElementById('active-alert-container');
     if (!container) return;
@@ -1271,7 +1804,7 @@ function renderActiveAlerts() {
         return;
     }
     
-    const alert = activeAlerts[0]; // Mostrar primeiro alerta (mais urgente)
+    const alert = activeAlerts[0];
     const timeAgo = getTimeAgo(alert.timestamp);
     
     container.innerHTML = `
@@ -1294,7 +1827,6 @@ function renderActiveAlerts() {
     `;
 }
 
-// Renderizar contadores de risco
 function renderRiskZones(households) {
     const risk = calculateRiskZones(households);
     
@@ -1307,7 +1839,6 @@ function renderRiskZones(households) {
     if (lowEl) lowEl.textContent = risk.low;
 }
 
-// Helper: Formatar tempo relativo (ex: "2 min atrás")
 function getTimeAgo(date) {
     const seconds = Math.floor((new Date() - date) / 1000);
     
@@ -1317,13 +1848,11 @@ function getTimeAgo(date) {
     return `${Math.floor(seconds / 86400)} dias`;
 }
 
-// Atualizar alertas e risco (chamar após carregar agregados)
 function updateAlertsAndRisk(households) {
     renderActiveAlerts();
     renderRiskZones(households);
 }
 
-// Duplo clique para abrir ficha técnica
 function openFicha(householdId) {
     window.location.href = `/ficha/${householdId}`;
 }
@@ -1342,6 +1871,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     loadHouseholdMarkers();
-    carregarInfraestruturas(); // ✅ NOVO: Carregar infraestruturas BIM
+    carregarInfraestruturas(); // ✅ Só carrega PONTOS (sempre visíveis)
+    // ❌ NÃO carregar polígonos aqui - só quando filtros ativados!
     map.invalidateSize();
 });

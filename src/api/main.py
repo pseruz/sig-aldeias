@@ -169,14 +169,13 @@ async def ficha_page(request: Request, household_id: int, db: Session = Depends(
         },
     )
 
-# ← ÚNICA definição de "/" (homepage = dashboard)
+# ← NOVA HOMEPAGE (Porta de Entrada com Login Integrado)
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse(
-        "map.html",
+        "home.html",
         {
             "request": request,
-            "title": "Dashboard Operacional - SIG-Aldeias",
-            "mode": "command",
+            "title": "SIG-Aldeias - Acesso Operacional",
         },
     )

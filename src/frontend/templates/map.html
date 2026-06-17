@@ -139,6 +139,71 @@
                 </div>
             </div>
 
+            <!-- ✅ NOVO: BOTÕES DE EDIÇÃO NO MAPA -->
+            {% if mode == 'command' %}
+            <p class="pc-panel__title pc-text fw-bold mb-2 pb-1 border-bottom border-secondary small text-uppercase" style="letter-spacing: 0.5px;">
+                <i class="bi bi-pencil-square me-1 text-warning"></i> Edição no Mapa
+            </p>
+            
+            <div class="p-2 rounded mb-3" style="background: rgba(0,0,0,0.15); border: 1px solid rgba(255,193,7,0.2);">
+                <p class="pc-text-muted small mb-2" style="font-size: 11px;">
+                    <i class="bi bi-info-circle me-1"></i>Clique num botão e depois no mapa para adicionar elementos.
+                </p>
+                
+                <div class="d-grid gap-1">
+                    <button type="button" class="btn btn-sm btn-outline-danger" id="btn-add-fire-zone" style="font-size: 11px;">
+                        <i class="bi bi-fire me-1"></i>Zona Incêndio
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="btn-add-flood-zone" style="font-size: 11px;">
+                        <i class="bi bi-droplet me-1"></i>Zona Cheia
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-success" id="btn-add-forest-zone" style="font-size: 11px;">
+                        <i class="bi bi-tree me-1"></i>Zona Florestal
+                    </button>
+                    
+                    <hr class="border-secondary my-1" style="opacity: 0.2;">
+                    
+                    <button type="button" class="btn btn-sm btn-outline-warning" id="btn-add-hydrant" style="font-size: 11px;">
+                        <i class="bi bi-droplet-fill me-1"></i>Boca Incêndio
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-info" id="btn-add-building" style="font-size: 11px;">
+                        <i class="bi bi-building me-1"></i>Edifício Público
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-light text-white" id="btn-add-meeting-point" style="font-size: 11px;">
+                        <i class="bi bi-geo-alt me-1"></i>Ponto Encontro
+                    </button>
+                    
+                    <hr class="border-secondary my-1" style="opacity: 0.2;">
+                    
+                    <button type="button" class="btn btn-sm btn-secondary" id="btn-cancel-edit" style="font-size: 11px;">
+                        <i class="bi bi-x-circle me-1"></i>Cancelar Edição
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+            <!-- ✅ FIM DOS BOTÕES DE EDIÇÃO -->
+
+            <!-- ✅ IMPORTAÇÃO BIM / GEOJSON (Só visível no Modo Comando) -->
+            {% if mode == 'command' %}
+            <p class="pc-panel__title pc-text fw-bold mb-2 pb-1 border-bottom border-secondary small text-uppercase" style="letter-spacing: 0.5px;">
+                <i class="bi bi-cloud-upload me-1 text-info"></i> Importação BIM / GeoJSON
+            </p>
+            
+            <div class="p-2 rounded mb-3" style="background: rgba(0,0,0,0.15); border: 1px solid rgba(13,110,253,0.2);">
+                <p class="pc-text-muted small mb-2" style="font-size: 11px;">
+                    <i class="bi bi-info-circle me-1"></i>Importa ficheiros exportados de Revit/BIM (formato .geojson).
+                </p>
+                
+                <!-- Input de ficheiro escondido -->
+                <input type="file" id="bim-file-input" accept=".geojson" style="display: none;">
+                
+                <!-- Botão visível que aciona o input escondido -->
+                <button type="button" class="btn btn-sm btn-outline-info w-100" id="btn-upload-bim" style="font-size: 11px;">
+                    <i class="bi bi-cloud-upload me-1"></i>Selecionar Ficheiro .geojson
+                </button>
+            </div>
+            {% endif %}
+
             <div class="mt-auto d-flex flex-column gap-2">
                 <button type="button" class="btn pc-btn-critical w-100 fw-bold btn-sm text-uppercase py-2" id="btn-refresh-map">
                     <i class="bi bi-arrow-clockwise me-1"></i> Atualizar mapa

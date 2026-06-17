@@ -1,0 +1,35 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Boca de Incêndio Importada",
+        "type": "hydrant",
+        "description": "Teste de upload via interface"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.0550, 40.2150]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Zona de Cheia Importada",
+        "type": "flood_zone",
+        "description": "Área de risco hídrico"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-8.060, 40.210],
+          [-8.050, 40.210],
+          [-8.050, 40.220],
+          [-8.060, 40.220],
+          [-8.060, 40.210]
+        ]]
+      }
+    }
+  ]
+}

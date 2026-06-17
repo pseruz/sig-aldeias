@@ -54,10 +54,10 @@ class OperationalLayer(Base):
     __tablename__ = "operational_layers"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), index=True, nullable=False) # Ex: "Boca de Incêndio 01"
-    layer_type = Column(String(50), nullable=False) # Ex: 'hydrant', 'meeting_point', 'evacuation_route'
-    geometry = Column(String(255), nullable=False) # WKT: "POINT(-8.123 40.234)"
-    description = Column(Text, nullable=True) # Detalhes técnicos (pressão, capacidade)
-    status = Column(String(20), default="ACTIVE") # ACTIVE, PENDING, ARCHIVED
+    name = Column(String(255), index=True, nullable=False)
+    layer_type = Column(String(50), nullable=False) # 'hydrant', 'public_building', 'fire_zone', 'flood_zone', etc.
+    geometry = Column(Text, nullable=False) # ALTERADO: De String(255) para Text (suporta polígonos grandes)
+    description = Column(Text, nullable=True)
+    status = Column(String(20), default="ACTIVE")
     created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIG-Aldeias - Porta de Entrada Operacional</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --pc-primary: #1e3a5f;
+            --pc-secondary: #2c5282;
+            --pc-accent: #e53e3e;
+            --pc-bg: #f7fafc;
+            --pc-glass: rgba(255, 255, 255, 0.95);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2d3748;
+            padding: 2rem 1rem;
+        }
+
+        .gateway-container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--pc-glass);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header-brand {
+            background: var(--pc-primary);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header-brand h1 {
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-brand p {
+            opacity: 0.85;
+            font-size: 1.1rem;
+        }
+
+        .login-section {
+            padding: 2.5rem;
+            max-width: 450px;
+            margin: 0 auto;
+            transition: all 0.5s ease;
+        }
+
+        .form-floating > .form-control {
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            height: 60px;
+        }
+
+        .form-floating > .form-control:focus {
+            border-color: var(--pc-secondary);
+            box-shadow: 0 0 0 4px rgba(44, 82, 130, 0.15);
+        }
+
+        .btn-login {
+            background: var(--pc-primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .btn-login:hover {
+            background: var(--pc-secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30, 58, 95, 0.3);
+        }
+
+        /* DASHBOARD DINÂMICO */
+        .dashboard-section {
+            display: none; /* Escondido inicialmente */
+            padding: 2rem;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--pc-secondary), var(--pc-primary));
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .module-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: var(--pc-text);
+        }
+
+        .module-card:hover {
+            border-color: var(--pc-secondary);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .module-icon {
+            font-size: 2.5rem;
+            color: var(--pc-primary);
+            margin-bottom: 1rem;
+        }
+
+        .module-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .module-desc {
+            font-size: 0.85rem;
+            color: #718096;
+            line-height: 1.4;
+        }
+
+        .alert-msg {
+            display: none;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .spinner-border-sm {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+            .gateway-container { border-radius: 12px; }
+            .login-section, .dashboard-section { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="gateway-container">
+    <!-- HEADER -->
+    <div class="header-brand">
+        <h1><i class="bi bi-shield-fill-check me-2"></i>SIG-Aldeias</h1>
+        <p>Sistema de Informação Geográfica para Proteção Civil</p>
+    </div>
+
+    <!-- SECÇÃO DE LOGIN (Visível inicialmente) -->
+    <div class="login-section" id="login-view">
+        <h4 class="text-center mb-4 fw-bold">Acesso à Plataforma</h4>
+        <form id="login-form">
+            <div class="form-floating mb-3">
+                <input type="email" class="form-control" id="login-email" placeholder="Email" required>
+                <label for="login-email">Email Institucional</label>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="password" class="form-control" id="login-password" placeholder="Password" required>
+                <label for="login-password">Palavra-passe</label>
+            </div>
+            <button type="submit" class="btn-login" id="btn-submit">
+                <span class="spinner-border spinner-border-sm me-2" id="btn-spinner"></span>
+                Entrar no Sistema
+            </button>
+            <div class="alert alert-danger alert-msg" id="login-error"></div>
+        </form>
+        <p class="text-center mt-4 text-muted small">
+            <i class="bi bi-info-circle me-1"></i> Ambiente de Demonstração v2.0
+        </p>
+    </div>
+
+    <!-- SECÇÃO DE DASHBOARD (Revelada após login) -->
+    <div class="dashboard-section" id="dashboard-view">
+        <div class="welcome-banner">
+            <div>
+                <h5 class="mb-1 fw-bold">Bem-vindo, <span id="user-name-display">Operador</span></h5>
+                <small class="opacity-75">Perfil: <span id="user-role-display" class="fw-bold text-warning">---</span></small>
+            </div>
+            <button class="btn btn-light btn-sm px-3" onclick="logout()">
+                <i class="bi bi-box-arrow-right me-1"></i> Sair
+            </button>
+        </div>
+
+        <h6 class="text-uppercase text-muted fw-bold mb-3 small">Módulos Disponíveis</h6>
+        <div class="module-grid" id="module-container">
+            <!-- Os módulos serão injetados via JavaScript conforme a role -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // CONFIGURAÇÃO DOS MÓDULOS POR PERFIL
+    const MODULES = {
+        tecnico: [
+            { icon: 'bi-geo-alt-fill', title: 'Registo de Campo', desc: 'Submeter novos agregados familiares', url: '/registo' },
+            { icon: 'bi-map', title: 'Visualizar Mapa', desc: 'Consultar cartografia e riscos', url: '/map' },
+            { icon: 'bi-card-list', title: 'Ficha Técnica', desc: 'Detalhes de infraestruturas', url: '/ficha' }
+        ],
+        coordenador: [
+            { icon: 'bi-speedometer2', title: 'Central de Comando', desc: 'Dashboard operacional em tempo real', url: '/dashboard' },
+            { icon: 'bi-map-fill', title: 'Mapa Tático', desc: 'Gestão de camadas e zonas', url: '/map' },
+            { icon: 'bi-check2-square', title: 'Validar Pendentes', desc: 'Auditar e validar registos', url: '/map?mode=command' },
+            { icon: 'bi-cloud-upload', title: 'Importar BIM', desc: 'Upload de ficheiros GeoJSON/Revit', url: '/map' },
+            { icon: 'bi-file-earmark-text', title: 'Relatórios', desc: 'Exportar dados técnicos', url: '/reports' }
+        ],
+        admin: [
+            { icon: 'bi-speedometer2', title: 'Central de Comando', desc: 'Controlo total do sistema', url: '/dashboard' },
+            { icon: 'bi-map-fill', title: 'Mapa Tático', desc: 'Edição avançada de camadas', url: '/map' },
+            { icon: 'bi-people-fill', title: 'Gestão de Utilizadores', desc: 'Criar e gerir equipas', url: '/users' },
+            { icon: 'bi-cloud-upload', title: 'Importar BIM', desc: 'Integração de dados externos', url: '/map' },
+            { icon: 'bi-gear-fill', title: 'Configuração', desc: 'Definições do sistema', url: '/settings' }
+        ]
+    };
+
+    // LÓGICA DE LOGIN (Versão Robusta - Compatível com FastAPI OAuth2)
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btn-submit');
+        const spinner = document.getElementById('btn-spinner');
+        const errorMsg = document.getElementById('login-error');
+        
+        btn.disabled = true;
+        spinner.style.display = 'inline-block';
+        errorMsg.style.display = 'none';
+
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+
+        // Prepara os dados como Form-Data (mais compatível com FastAPI/OAuth2)
+        const formData = new FormData();
+        formData.append('username', email); // FastAPI usa 'username' para o email
+        formData.append('password', password);
+
+        try {
+            // Tenta primeiro /token (padrão OAuth2 do FastAPI)
+            let response = await fetch('/token', { 
+                method: 'POST',
+                body: formData 
+            });
+
+            let data;
+            
+            if (!response.ok) {
+                // Se falhar em /token, tenta /login como fallback
+                response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: email, password: password })
+                });
+                
+                if (!response.ok) throw new Error('Credenciais inválidas');
+                data = await response.json();
+            } else {
+                data = await response.json();
+            }
+            
+            // Guardar Token
+            localStorage.setItem('access_token', data.access_token);
+
+            // Decodificar Role do JWT
+            const payload = JSON.parse(atob(data.access_token.split('.')[1]));
+            const role = payload.role || 'tecnico';
+            const name = payload.name || email.split('@')[0];
+
+            // Atualizar UI
+            document.getElementById('user-name-display').textContent = name;
+            document.getElementById('user-role-display').textContent = role.toUpperCase();
+            
+            renderModules(role);
+            
+            // Transição de Vista
+            document.getElementById('login-view').style.display = 'none';
+            document.getElementById('dashboard-view').style.display = 'block';
+
+        } catch (err) {
+            console.error('Erro de login:', err);
+            errorMsg.textContent = 'Erro: Email ou password incorretos.';
+            errorMsg.style.display = 'block';
+        } finally {
+            btn.disabled = false;
+            spinner.style.display = 'none';
+        }
+    });
+
+    function renderModules(role) {
+        const container = document.getElementById('module-container');
+        const modules = MODULES[role] || MODULES.tecnico;
+        
+        container.innerHTML = modules.map(m => `
+            <a href="${m.url}" class="module-card">
+                <div class="module-icon"><i class="bi ${m.icon}"></i></div>
+                <div class="module-title">${m.title}</div>
+                <div class="module-desc">${m.desc}</div>
+            </a>
+        `).join('');
+    }
+
+    function logout() {
+        localStorage.removeItem('access_token');
+        window.location.reload();
+    }
+
+    // Verificar se já está logado ao carregar a página
+    window.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const role = payload.role || 'tecnico';
+                document.getElementById('user-name-display').textContent = payload.name || 'Operador';
+                document.getElementById('user-role-display').textContent = role.toUpperCase();
+                renderModules(role);
+                document.getElementById('login-view').style.display = 'none';
+                document.getElementById('dashboard-view').style.display = 'block';
+            } catch (e) {
+                localStorage.removeItem('access_token');
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
