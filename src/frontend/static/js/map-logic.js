@@ -1,4 +1,4 @@
-// js/map-logic.js — Versão Final Corrigida (Pontos sempre visíveis, Polígonos só com filtros)
+// js/map-logic.js — Versão Final (Motor 2.5D movido para map-25d.js)
 
 const STATUS_COLORS = {
     pendente: '#DC3545',
@@ -47,18 +47,25 @@ window._streetLayer = null;
 window._infraMarkersLayer = null;
 window.forestLayer = null;
 window.infrastructuresLayer = null;
+// ✅ 2.5D - Variável global inicializada em map-25d.js
 
 // =========================================================================
 // ✅ VARIÁVEIS DE MODO DE EDIÇÃO
 // =========================================================================
 let editMode = {
     active: false,
-    type: null, // 'point' ou 'polygon'
-    layerType: null, // 'hydrant', 'public_building', 'fire_zone', etc.
+    type: null,
+    layerType: null,
     drawingLayer: null,
     tempMarkers: [],
     tempPolygon: null
 };
+
+// =========================================================================
+// ❌ MOTOR 2.5D REMOVIDO - Movido para map-25d.js
+// =========================================================================
+// A classe Building25DLayer e função initOrUpdate25D() 
+// estão agora no ficheiro separado: map-25d.js
 
 function drawStreet(key) {
     if (!map) return;
@@ -171,7 +178,6 @@ function applyRoleUI(role) {
         if (registoBtn) registoBtn.classList.remove('d-none');
     }
 
-    // ✅ CONTROLO DE ACESSO: Edição só para comando (admin/coordenador)
     const editSection = document.querySelector('#panel-filters .p-2.rounded.mb-3[style*="border: 1px solid rgba(255,193,7,0.2)"]');
     
     if (editSection) {
@@ -183,7 +189,6 @@ function applyRoleUI(role) {
             editSectionFound: !!editSection
         });
         
-        // Mostrar apenas se for admin ou coordenador
         if (isCommandRole) {
             editSection.style.display = 'block';
             const editTitle = editSection.previousElementSibling;
@@ -855,8 +860,17 @@ async function loadHouseholdMarkers() {
         else if (bounds.length > 1) map.fitBounds(bounds, { padding: [40, 40] });
 
         updateAlertsAndRisk(households);
-
         refreshOperationalLayers();
+
+        // ✅ 2.5D - Atualizar camada quando dados mudam (PROTEGIDO)
+        if (typeof initOrUpdate25D === 'function') {
+            try {
+                initOrUpdate25D();
+            } catch (err) {
+                console.warn('⚠️ Erro no módulo 2.5D (não crítico):', err);
+            }
+        }
+
     } catch (err) {
         console.error('Erro ao carregar agregados:', err);
         const contentEl = document.getElementById('drawer-content');
@@ -908,7 +922,6 @@ async function carregarInfraestruturas() {
             try {
                 const geom = infra.geometry.trim().toUpperCase();
                 
-                // ✅ APENAS PONTOS - Polígonos são carregados separadamente
                 if (geom.startsWith('POINT(')) {
                     const match = infra.geometry.match(/POINT\(([-\d.]+)\s+([-\d.]+)\)/);
                     if (!match) return;
@@ -931,7 +944,6 @@ async function carregarInfraestruturas() {
                         .bindPopup(`<b>${infra.name}</b><br><small>${infra.description || infra.layer_type}</small>`)
                         .addTo(window.infrastructuresLayer);
 
-                    // ✅ Adicionar clique para editar/eliminar (apenas para comando)
                     const userRole = getUserRole();
                     if (userRole === 'admin' || userRole === 'coordenador') {
                         marker.on('click', () => {
@@ -945,7 +957,6 @@ async function carregarInfraestruturas() {
                         });
                     }  
                 }
-                // ❌ POLÍGONOS são ignorados aqui - carregados por carregarCamadasOperacionais()
             } catch (err) {
                 console.error('Erro ao processar infraestrutura:', infra.name, err);
             }
@@ -969,13 +980,11 @@ async function carregarCamadasOperacionais(tipoCamada) {
         
         const infraestruturas = await response.json();
         
-        // Remover camada anterior deste tipo
         const layerName = `operationalLayer_${tipoCamada}`;
         if (window[layerName] && map) {
             map.removeLayer(window[layerName]);
         }
         
-        // Filtrar apenas polígonos do tipo solicitado
         const poligonos = infraestruturas.filter(infra => {
             if (!infra.geometry) return false;
             const geom = infra.geometry.trim().toUpperCase();
@@ -987,13 +996,11 @@ async function carregarCamadasOperacionais(tipoCamada) {
             return;
         }
         
-        // Criar nova camada
         window[layerName] = L.layerGroup();
         if (map) {
             window[layerName].addTo(map);
         }
         
-        // Cores por tipo de camada
         const cores = {
             'fire_zone': { color: '#DC3545', fillColor: '#DC3545', label: '🔥 Zona de Incêndio' },
             'flood_zone': { color: '#0D6EFD', fillColor: '#0D6EFD', label: '🌊 Zona de Cheia' },
@@ -1023,7 +1030,6 @@ async function carregarCamadasOperacionais(tipoCamada) {
                 .bindPopup(`<b>${cor.label}</b><br><small>${infra.name}</small><br><em>${infra.description || ''}</em>`)
                 .addTo(window[layerName]);
 
-                // ✅ Adicionar clique para editar/eliminar (apenas para comando)
                 const userRole = getUserRole();
                 if (userRole === 'admin' || userRole === 'coordenador') {
                     polygon.on('click', () => {
@@ -1134,7 +1140,14 @@ async function criarPontoNoMapa(lat, lng) {
             method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
             body: JSON.stringify({ name: nome, layer_type: editMode.layerType, geometry: wkt, description: descricao, status: 'ACTIVE' })
         });
-        if (response.ok) { alert('✅ Criado com sucesso!'); await carregarInfraestruturas(); } 
+        if (response.ok) { 
+            alert('✅ Criado com sucesso!'); 
+            await carregarInfraestruturas();
+            // ✅ 2.5D - Atualizar após criar ponto (PROTEGIDO)
+            if (typeof initOrUpdate25D === 'function') {
+                try { initOrUpdate25D(); } catch (err) { console.warn('⚠️ Erro 2.5D:', err); }
+            }
+        } 
         else { const err = await response.json(); alert(`❌ Erro: ${err.detail || 'Falha'}`); }
     } catch (error) { alert('❌ Erro de conexão'); }
     desativarModoEdicao();
@@ -1151,14 +1164,10 @@ function adicionarVerticePoligono(lat, lng) {
 // =========================================================================
 // ✅ EDITAR E ELIMINAR INFRAESTRUTURAS EXISTENTES
 // =========================================================================
-
-// Abrir popup de edição com opções
 function mostrarOpcoesInfraestrutura(infraId, infraNome, infraType, infraGeometry, infraDescription) {
-    // Remover popup anterior se existir
     const existingPopup = document.getElementById('infra-edit-popup');
     if (existingPopup) existingPopup.remove();
     
-    // Criar popup
     const popup = document.createElement('div');
     popup.id = 'infra-edit-popup';
     popup.style.cssText = `
@@ -1199,7 +1208,6 @@ function mostrarOpcoesInfraestrutura(infraId, infraNome, infraType, infraGeometr
     
     document.body.appendChild(popup);
     
-    // Event listeners
     document.getElementById('btn-edit-infra').addEventListener('click', () => {
         popup.remove();
         editarInfraestrutura(infraId, infraNome, infraType, infraGeometry, infraDescription);
@@ -1215,7 +1223,6 @@ function mostrarOpcoesInfraestrutura(infraId, infraNome, infraType, infraGeometr
     });
 }
 
-// Editar infraestrutura
 async function editarInfraestrutura(infraId, nomeAtual, layerType, geometry, description) {
     const novoNome = prompt(`✏️ Editar Nome:\n\nNome atual: ${nomeAtual}\n\nNovo nome:`, nomeAtual);
     if (!novoNome || novoNome === nomeAtual) return;
@@ -1237,9 +1244,12 @@ async function editarInfraestrutura(infraId, nomeAtual, layerType, geometry, des
         
         if (response.ok) {
             alert('✅ Infraestrutura atualizada com sucesso!');
-            // Recarregar camadas
             await carregarInfraestruturas();
             await carregarCamadasOperacionais(layerType);
+            // ✅ 2.5D - Atualizar após editar (PROTEGIDO)
+            if (typeof initOrUpdate25D === 'function') {
+                try { initOrUpdate25D(); } catch (err) { console.warn('⚠️ Erro 2.5D:', err); }
+            }
         } else {
             const err = await response.json();
             alert(`❌ Erro: ${err.detail || 'Falha ao atualizar'}`);
@@ -1250,7 +1260,6 @@ async function editarInfraestrutura(infraId, nomeAtual, layerType, geometry, des
     }
 }
 
-// Eliminar infraestrutura (já existe, mas vamos melhorar)
 async function eliminarInfraestrutura(infraId, nome) {
     if (!confirm(`⚠️ ELIMINAR "${nome}"?\n\nEsta ação não pode ser desfeita.\n\nTens a certeza?`)) {
         return;
@@ -1263,9 +1272,7 @@ async function eliminarInfraestrutura(infraId, nome) {
         
         if (response.ok) {
             alert('✅ Infraestrutura eliminada!');
-            // Recarregar tudo
             await carregarInfraestruturas();
-            // Recarregar todas as camadas operacionais ativas
             if (document.getElementById('toggle-fire')?.checked) {
                 await carregarCamadasOperacionais('fire_zone');
             }
@@ -1274,6 +1281,10 @@ async function eliminarInfraestrutura(infraId, nome) {
             }
             if (document.getElementById('toggle-forest')?.checked) {
                 await carregarCamadasOperacionais('forest_zone');
+            }
+            // ✅ 2.5D - Atualizar após eliminar (PROTEGIDO)
+            if (typeof initOrUpdate25D === 'function') {
+                try { initOrUpdate25D(); } catch (err) { console.warn('⚠️ Erro 2.5D:', err); }
             }
         } else {
             alert('❌ Erro ao eliminar');
@@ -1295,7 +1306,14 @@ async function fecharEGuardarPoligono() {
             method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
             body: JSON.stringify({ name: nome, layer_type: editMode.layerType, geometry: wkt, description: descricao, status: 'ACTIVE' })
         });
-        if (response.ok) { alert('✅ Zona criada com sucesso!'); await carregarCamadasOperacionais(editMode.layerType); } 
+        if (response.ok) { 
+            alert('✅ Zona criada com sucesso!'); 
+            await carregarCamadasOperacionais(editMode.layerType);
+            // ✅ 2.5D - Atualizar após criar polígono (PROTEGIDO)
+            if (typeof initOrUpdate25D === 'function') {
+                try { initOrUpdate25D(); } catch (err) { console.warn('⚠️ Erro 2.5D:', err); }
+            }
+        } 
         else { const err = await response.json(); alert(`❌ Erro: ${err.detail || 'Falha'}`); }
     } catch (error) { alert('❌ Erro de conexão'); }
     editMode.tempMarkers.forEach(m => map.removeLayer(m));
@@ -1327,21 +1345,19 @@ function initMap() {
     window.forestLayer = null;
     window._infraMarkersLayer = null;
     window.infrastructuresLayer = null;
+    // ✅ 2.5D - Inicializado em map-25d.js
 }
 
 // =========================================================================
 // ✅ SISTEMA DE NOTIFICAÇÕES TOAST
 // =========================================================================
 function showNotification(message, type = 'info') {
-    // Remover notificações anteriores
     const existingNotifications = document.querySelectorAll('.pc-toast-notification');
     existingNotifications.forEach(n => n.remove());
     
-    // Criar toast
     const toast = document.createElement('div');
     toast.className = 'pc-toast-notification';
     
-    // Cores por tipo
     const colors = {
         'success': { bg: '#198754', border: '#146c43', icon: '✅' },
         'error': { bg: '#DC3545', border: '#b02a37', icon: '❌' },
@@ -1377,20 +1393,13 @@ function showNotification(message, type = 'info') {
     
     document.body.appendChild(toast);
     
-    // Adicionar animação CSS se não existir
     if (!document.getElementById('toast-animation-style')) {
         const style = document.createElement('style');
         style.id = 'toast-animation-style';
         style.textContent = `
             @keyframes slideInRight {
-                from {
-                    transform: translateX(400px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
+                from { transform: translateX(400px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
             }
             @keyframes fadeOut {
                 from { opacity: 1; }
@@ -1400,7 +1409,6 @@ function showNotification(message, type = 'info') {
         document.head.appendChild(style);
     }
     
-    // Remover após 4 segundos
     setTimeout(() => {
         toast.style.animation = 'fadeOut 0.3s ease-out';
         setTimeout(() => toast.remove(), 300);
@@ -1417,7 +1425,6 @@ function wireMapControls() {
 
     document.getElementById('street-filter')?.addEventListener('change', (e) => drawStreet(e.target.value));
 
-    // ✅ CAMADAS OPERACIONAIS - Só carregam quando ativadas
     document.getElementById('toggle-fire')?.addEventListener('change', (e) => {
         if (e.target.checked) {
             carregarCamadasOperacionais('fire_zone');
@@ -1453,7 +1460,20 @@ function wireMapControls() {
     );
     document.getElementById('toggle-risk')?.addEventListener('change', (e) => drawRiskZones(e.target.checked));
     
-    // ✅ BOTÕES DE EDIÇÃO
+    // ✅ 2.5D - Toggle de visualização volumétrica (PROTEGIDO)
+    document.getElementById('toggle25d')?.addEventListener('change', (e) => {
+        if (window.building25DLayer) {
+            try {
+                const isOn = window.building25DLayer.toggle();
+                console.log('2.5D Visualization:', isOn ? 'ON' : 'OFF');
+            } catch (err) {
+                console.warn('⚠️ Erro ao ativar 2.5D:', err);
+            }
+        } else {
+            console.warn('⚠️ Módulo 2.5D não inicializado');
+        }
+    });
+
     document.getElementById('btn-add-hydrant')?.addEventListener('click', () => ativarModoEdicao('point', 'hydrant'));
     document.getElementById('btn-add-building')?.addEventListener('click', () => ativarModoEdicao('point', 'public_building'));
     document.getElementById('btn-add-meeting-point')?.addEventListener('click', () => ativarModoEdicao('point', 'meeting_point'));
@@ -1462,22 +1482,18 @@ function wireMapControls() {
     document.getElementById('btn-add-forest-zone')?.addEventListener('click', () => ativarModoEdicao('polygon', 'forest_zone'));
     document.getElementById('btn-cancel-edit')?.addEventListener('click', () => desativarModoEdicao());
     
-    // ✅ LÓGICA DE UPLOAD BIM (Nova secção)
     const btnUploadBim = document.getElementById('btn-upload-bim');
     const inputBimFile = document.getElementById('bim-file-input');
 
     if (btnUploadBim && inputBimFile) {
-        // Quando clica no botão, simula o clique no input de ficheiro escondido
         btnUploadBim.addEventListener('click', () => {
             inputBimFile.click();
         });
 
-        // Quando o utilizador seleciona um ficheiro
         inputBimFile.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            // Mostrar notificação de "A processar..."
             showNotification(`A processar ${file.name}...`, 'info');
 
             const formData = new FormData();
@@ -1493,11 +1509,15 @@ function wireMapControls() {
                     const result = await response.json();
                     showNotification(`✅ ${result.imported_count} elementos BIM importados com sucesso!`, 'success');
                     
-                    // Recarregar as camadas para mostrar os novos dados
                     await carregarInfraestruturas();
                     if (document.getElementById('toggle-fire')?.checked) await carregarCamadasOperacionais('fire_zone');
                     if (document.getElementById('toggle-flood')?.checked) await carregarCamadasOperacionais('flood_zone');
                     if (document.getElementById('toggle-forest')?.checked) await carregarCamadasOperacionais('forest_zone');
+                    
+                    // ✅ 2.5D - Atualizar após upload BIM (PROTEGIDO)
+                    if (typeof initOrUpdate25D === 'function') {
+                        try { initOrUpdate25D(); } catch (err) { console.warn('⚠️ Erro 2.5D:', err); }
+                    }
                 } else {
                     showNotification('❌ Erro ao importar ficheiro. Verifica o formato.', 'error');
                 }
@@ -1506,7 +1526,6 @@ function wireMapControls() {
                 showNotification('❌ Erro de conexão ao servidor.', 'error');
             }
             
-            // Limpar o input para permitir carregar o mesmo ficheiro novamente se necessário
             e.target.value = '';
         });
     }
@@ -1857,6 +1876,64 @@ function openFicha(householdId) {
     window.location.href = `/ficha/${householdId}`;
 }
 
+function initHamburgerMenus() {
+    const btnFilters = document.getElementById('btn-hamburger-filters');
+    const btnDetails = document.getElementById('btn-hamburger-details');
+    const panelFilters = document.getElementById('panel-filters');
+    const panelDetails = document.getElementById('validation-panel');
+
+    let backdrop = document.querySelector('.pc-mobile-backdrop');
+    if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.className = 'pc-mobile-backdrop';
+        document.body.appendChild(backdrop);
+    }
+
+    function closeAllPanels() {
+        panelFilters?.classList.remove('active');
+        panelDetails?.classList.remove('active');
+        backdrop.classList.remove('active');
+        btnFilters?.classList.remove('active');
+        btnDetails?.classList.remove('active');
+    }
+
+    btnFilters?.addEventListener('click', () => {
+        const isActive = panelFilters?.classList.contains('active');
+        closeAllPanels();
+
+        if (!isActive) {
+            panelFilters?.classList.add('active');
+            backdrop.classList.add('active');
+            btnFilters?.classList.add('active');
+        }
+    });
+
+    btnDetails?.addEventListener('click', () => {
+        const isActive = panelDetails?.classList.contains('active');
+        closeAllPanels();
+
+        if (!isActive) {
+            panelDetails?.classList.add('active');
+            backdrop.classList.add('active');
+            btnDetails?.classList.add('active');
+        }
+    });
+
+    backdrop.addEventListener('click', closeAllPanels);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeAllPanels();
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768) {
+            closeAllPanels();
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initPanelResizing();
     initMap();
@@ -1864,6 +1941,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applyRoleUI(getUserRole());
     wireMapControls();
     showSubmittedAlert();
+    initHamburgerMenus();
 
     if (getMapMode() === 'command') {
         const pendingBtn = document.getElementById('btn-load-pending');
@@ -1871,7 +1949,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     loadHouseholdMarkers();
-    carregarInfraestruturas(); // ✅ Só carrega PONTOS (sempre visíveis)
-    // ❌ NÃO carregar polígonos aqui - só quando filtros ativados!
+    carregarInfraestruturas();
     map.invalidateSize();
 });

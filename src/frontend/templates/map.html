@@ -10,9 +10,10 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 
-<style>
-    /* 📌 Mantemos apenas as customizações dos contadores de risco. 
-       Tudo o resto (Mapas e Legendas) foi centralizado com sucesso no style.css! */
+<!-- ✅ 2.5D CSS -->
+<link rel="stylesheet" href="{{ url_for('static', path='/css/map-25d.css') }}">
+
+<style>    /* 📌 Customizações dos contadores de risco */
     .pc-risk-counter {
         border-radius: 6px;
         padding: 6px;
@@ -27,15 +28,97 @@
     .pc-risk-medium .pc-risk-value { color: #ffd043; }
     .pc-risk-low .pc-risk-value { color: #4cd964; }
     .pc-risk-label { font-size: 10px; text-transform: uppercase; color: var(--pc-text-muted); font-weight: bold; }
+
+    /* ✅ Estilos para o card 2.5D */
+    .card-25d {
+        background: linear-gradient(135deg, rgba(255,193,7,0.1) 0%, rgba(255,193,7,0.05) 100%);
+        border: 1px solid rgba(255,193,7,0.3);
+    }
+    .card-25d:hover {
+        border-color: rgba(255,193,7,0.5);
+        box-shadow: 0 2px 8px rgba(255,193,7,0.2);
+    }
+
+    /* ✅ EFEITO 3D - Inclinação do mapa quando 2.5D ativo */
+    .map-3d-tilt {
+        transform: perspective(1200px) rotateX(45deg);
+        transform-origin: center bottom;
+        transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Container do mapa precisa de altura fixa para o 3D funcionar */
+    #map-container {
+        height: 600px;
+        transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+    }
+    
+    /* Ajuste para o mapa não ficar cortado */
+    .pc-map-column {
+        perspective: 1500px;
+        overflow: hidden;
+    }
+    
+    /* ✅ Animação dos polígonos 2.5D */
+    .leaflet-overlay-pane svg path {
+        transition: all 0.5s ease;
+    }
+    
+    /* Efeito de hover nos edifícios */
+    .leaflet-overlay-pane svg path:hover {
+        fill-opacity: 1 !important;
+        stroke-width: 3 !important;
+        cursor: pointer;
+    }
+
+    /* ✅ Legenda 2.5D */
+    .legend-25d {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.85);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 12px;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        display: none;
+        max-width: 200px;
+    }
+
+    .legend-25d h6 {
+        margin: 0 0 10px 0;
+        color: #ffc107;
+        font-size: 14px;
+    }
+
+    .legend-25d .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+
+    .legend-25d .legend-color {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #fff;
+        flex-shrink: 0;
+    }
+
+    .legend-25d .legend-circle {
+        border-radius: 50%;
+    }
+
+    .legend-25d .legend-square {
+        border-radius: 3px;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<input type="checkbox" id="pc-toggle-filters" class="pc-sheet-input" aria-hidden="true" tabindex="-1">
-<input type="checkbox" id="pc-toggle-details" class="pc-sheet-input" aria-hidden="true" tabindex="-1">
-<label for="pc-toggle-filters" class="pc-sheet-backdrop pc-sheet-backdrop--filters d-md-none" aria-hidden="true"></label>
-<label for="pc-toggle-details" class="pc-sheet-backdrop pc-sheet-backdrop--details d-md-none" aria-hidden="true"></label>
-
 <div id="map-page-root" class="pc-app-frame" data-pc-mode="{{ mode | default('command') }}">
 
     {% if mode == 'field' %}
@@ -139,7 +222,32 @@
                 </div>
             </div>
 
-            <!-- ✅ NOVO: BOTÕES DE EDIÇÃO NO MAPA -->
+            <!-- ✅ 2.5D TOGGLE - MELHORADO -->
+            <div class="card card-25d mb-3">
+                <div class="card-body p-2">
+                    <h6 class="card-title text-warning mb-2" style="font-size: 12px;">
+                        <i class="bi bi-boxes me-1"></i> Visualização 2.5D
+                    </h6>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="toggle25d">
+                        <label class="form-check-label pc-text small" for="toggle25d">
+                            <strong>Ativar Volumetria</strong>
+                        </label>
+                    </div>
+                    <small class="pc-text-muted d-block" style="font-size: 10px;">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Edifícios extrudados por nº de pisos. Cores por material:
+                    </small>
+                    <div class="d-flex gap-2 mt-1" style="font-size: 9px;">
+                        <span><span style="display:inline-block;width:10px;height:10px;background:#3b82f6;border-radius:2px;"></span> Betão</span>
+                        <span><span style="display:inline-block;width:10px;height:10px;background:#ef4444;border-radius:2px;"></span> Madeira</span>
+                        <span><span style="display:inline-block;width:10px;height:10px;background:#eab308;border-radius:2px;"></span> Alvenaria</span>
+                    </div>
+                </div>
+            </div>
+            <!-- ✅ FIM DO TOGGLE 2.5D -->
+
+            <!-- ✅ BOTÕES DE EDIÇÃO NO MAPA -->
             {% if mode == 'command' %}
             <p class="pc-panel__title pc-text fw-bold mb-2 pb-1 border-bottom border-secondary small text-uppercase" style="letter-spacing: 0.5px;">
                 <i class="bi bi-pencil-square me-1 text-warning"></i> Edição no Mapa
@@ -183,7 +291,7 @@
             {% endif %}
             <!-- ✅ FIM DOS BOTÕES DE EDIÇÃO -->
 
-            <!-- ✅ IMPORTAÇÃO BIM / GEOJSON (Só visível no Modo Comando) -->
+            <!-- ✅ IMPORTAÇÃO BIM / GEOJSON -->
             {% if mode == 'command' %}
             <p class="pc-panel__title pc-text fw-bold mb-2 pb-1 border-bottom border-secondary small text-uppercase" style="letter-spacing: 0.5px;">
                 <i class="bi bi-cloud-upload me-1 text-info"></i> Importação BIM / GeoJSON
@@ -194,10 +302,8 @@
                     <i class="bi bi-info-circle me-1"></i>Importa ficheiros exportados de Revit/BIM (formato .geojson).
                 </p>
                 
-                <!-- Input de ficheiro escondido -->
                 <input type="file" id="bim-file-input" accept=".geojson" style="display: none;">
                 
-                <!-- Botão visível que aciona o input escondido -->
                 <button type="button" class="btn btn-sm btn-outline-info w-100" id="btn-upload-bim" style="font-size: 11px;">
                     <i class="bi bi-cloud-upload me-1"></i>Selecionar Ficheiro .geojson
                 </button>
@@ -217,65 +323,102 @@
         <section class="pc-map-column position-relative" aria-label="Mapa operacional">
             <div id="map-container" role="application" aria-label="Mapa Leaflet SIG-Aldeias"></div>
             
+            <!-- ✅ LEGENDA 2.5D DINÂMICA -->
+            <div id="legend-25d" class="legend-25d">
+                <h6><i class="bi bi-boxes me-1"></i> Vista 2.5D</h6>
+                <div class="legend-item">
+                    <span class="legend-color legend-square" style="background: #3b82f6;"></span>
+                    <span>Betão Armado</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color legend-square" style="background: #ef4444;"></span>
+                    <span>Madeira</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color legend-square" style="background: #eab308;"></span>
+                    <span>Alvenaria</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color legend-circle" style="background: #10b981;"></span>
+                    <span>Ponto de Encontro</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color legend-circle" style="background: #ef4444;"></span>
+                    <span>Boca de Incêndio</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color legend-square" style="background: #8b5cf6;"></span>
+                    <span>Edifício Público</span>
+                </div>
+            </div>
+            <!-- ✅ FIM LEGENDA 2.5D -->
+            
             <div class="pc-floating-legend pc-legend-materials d-none d-md-block">
-                <h6><i class="bi bi-geo-alt-fill text-danger me-1"></i>Matriz de Edifícios</h6>
+                <h6><i class="bi bi-geo-alt-fill text-danger me-1"></i>AGREGADOS</h6>
                 
-                <div class="legend-section-title">Materiais Estruturais</div>
+                <div class="legend-section-title">Materiais</div>
                 <div class="legend-item">
                     <span class="legend-color" style="background: #0D6EFD; border: 1px solid rgba(255,255,255,0.2);"></span>
                     Betão Armado
                 </div>
                 <div class="legend-item">
                     <span class="legend-color" style="background: #FFC107; border: 1px solid rgba(255,255,255,0.2);"></span>
-                    Alvenaria Tradicional
+                    Alvenaria
                 </div>
                 <div class="legend-item">
                     <span class="legend-color" style="background: #DC3545; border: 1px solid rgba(255,255,255,0.2);"></span>
-                    Estruturas de Madeira
+                    Madeira
                 </div>
                 
-                <div class="legend-section-title">Indicadores de Risco</div>
+                <div class="legend-section-title">Estado</div>
                 <div class="legend-item">
                     <span class="legend-color" style="border: 2px dashed #FFC107; background: transparent; height: 10px; width: 10px;"></span>
-                    Registo Pendente
+                    Pendente
                 </div>
                 <div class="legend-item">
                     <span class="legend-color" style="border: 2px solid #DC3545; background: rgba(220,53,69,0.2); height: 10px; width: 10px;"></span>
-                    Vulnerabilidade Crítica
+                    Crítico
                 </div>
             </div>
             
             <div class="pc-floating-legend pc-legend-layers d-none d-md-block">
-                <h6><i class="bi bi-layers-half text-info me-1"></i>Camadas Ativas</h6>
+                <h6><i class="bi bi-layers-half text-info me-1"></i>CAMADAS</h6>
                 
                 <div class="legend-item">
                     <span class="legend-color" style="background: #DC3545; opacity: 0.4;"></span>
-                    Frente de Incêndio Active
-                </div>
+                    Incêndio                </div>
                 <div class="legend-item">
                     <span class="legend-color" style="background: #0D6EFD; opacity: 0.4;"></span>
-                    Leito de Cheias Histórico
+                    Cheias
                 </div>
                 <div class="legend-item">
                     <span class="legend-color" style="background: #228B22; opacity: 0.4;"></span>
-                    Mancha Florestal Contígua
-                </div>
+                    Floresta                </div>
                 <div class="legend-item">
                     <span class="legend-line" style="background: #0D6EFD; height: 3px; width: 14px; display: inline-block;"></span>
-                    Corredor de Evacuação Emergência
+                    Rota-Evacuação
                 </div>
                 <div class="legend-item">
                     <span class="legend-color" style="background: #DC3545; opacity: 0.15; border: 1px dashed rgba(220,53,69,0.5);"></span>
-                    Zona Geográfica Protelada (Risco)
+                    Zona de Risco
                 </div>
             </div>
             
-            <label for="pc-toggle-filters" class="pc-fab pc-fab-filters d-md-none" title="Filtros" aria-label="Abrir filtros">
-                <span aria-hidden="true"><i class="bi bi-filter"></i></span>
-            </label>
-            <label for="pc-toggle-details" class="pc-fab pc-fab-details d-md-none" title="Validação" aria-label="Abrir validação">
-                <span aria-hidden="true"><i class="bi bi-clipboard-data"></i></span>
-            </label>
+            <button type="button" class="pc-hamburger-btn pc-hamburger-left d-md-none" id="btn-hamburger-filters" aria-label="Abrir filtros" title="Filtros">
+                <span class="hamburger-icon" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+            </button>
+
+            <button type="button" class="pc-hamburger-btn pc-hamburger-right d-md-none" id="btn-hamburger-details" aria-label="Abrir validação" title="Validação">
+                <span class="hamburger-icon" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+            </button>
         </section>
 
         <aside class="pc-panel pc-panel-right d-none d-md-flex flex-column p-3" id="validation-panel" aria-label="Validação de dados técnicos">
@@ -289,11 +432,11 @@
                 </h5>
                 
                 <div id="active-alert-container" class="mb-3">
-                    </div>
+                </div>
                 
                 <div class="p-2 rounded" style="background: rgba(0,0,0,0.15); border: 1px solid var(--pc-border-color);">
                     <h6 class="pc-text small fw-bold mb-2" style="font-size: 11px;">
-                        <i class="bi bi-shield-slash me-1 text-muted"></i>Severidade Climatérica Local
+                        <i class="bi bi-shield-slash me-1 text-muted"></i>Zonas de Risco
                     </h6>
                     <div class="row g-2 text-center">
                         <div class="col-4">
@@ -383,5 +526,9 @@
 
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
+<!-- ✅ 2.5D JS - ANTES DO map-logic.js -->
+<script src="{{ url_for('static', path='/js/map-25d.js') }}"></script>
+
+<!-- Lógica principal do mapa -->
 <script src="{{ url_for('static', path='/js/map-logic.js') }}"></script>
 {% endblock %}

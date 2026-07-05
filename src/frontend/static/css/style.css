@@ -2,15 +2,20 @@
  * SIG-Aldeias — Proteção Civil Dark Mode
  * Paleta: #121824 | #FF6B00 | #F8F9FA
  * Layout: Bento Box Dashboard
+ * Versão unificada e corrigida
  */
 
 :root {
-  --pc-bg-panel: #121824;
+  /* Cores principais */
   --pc-bg-main: #0d111a;
+  --pc-bg-panel: #121824;
   --pc-accent: #ff6b00;
+  --pc-accent-hover: #e65f00;
   --pc-text: #f8f9fa;
   --pc-text-muted: #adb5bd;
   --pc-border: rgba(248, 249, 250, 0.12);
+  
+  /* Dimensões */
   --pc-nav-height: 56px;
   --pc-sheet-height: 60vh;
   --pc-touch-min: 44px;
@@ -22,13 +27,24 @@
 /* 1. UTILITÁRIOS GLOBAIS                                                    */
 /* ========================================================================= */
 
-.pc-text { color: var(--pc-text); }
-.pc-text-muted { color: var(--pc-text-muted); }
+body.pc-operational {
+  background-color: var(--pc-bg-main);
+  color: var(--pc-text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.pc-text { color: var(--pc-text) !important; }
+.pc-text-muted { color: var(--pc-text-muted) !important; }
 
 .pc-panel {
   background-color: var(--pc-bg-panel);
   color: var(--pc-text);
   border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius);
 }
 
 .pc-btn-critical {
@@ -37,27 +53,26 @@
   color: #1a1a1a;
   font-weight: 600;
   min-height: var(--pc-touch-min);
+  transition: background-color 0.15s ease;
 }
 
-.pc-btn-critical:hover,
+.pc-btn-critical:hover:not(:disabled),
 .pc-btn-critical:focus {
-  background-color: #e65f00;
-  border-color: #e65f00;
+  background-color: var(--pc-accent-hover);
+  border-color: var(--pc-accent-hover);
   color: #1a1a1a;
+}
+
+.pc-btn-critical:disabled {
+  background-color: #334155;
+  border-color: #334155;
+  color: #94a3b8;
+  opacity: 0.6;
 }
 
 /* ========================================================================= */
 /* 2. LAYOUT BENTO BOX - PÁGINA DO MAPA                                      */
 /* ========================================================================= */
-
-body.pc-operational {
-  background-color: var(--pc-bg-main);
-  color: var(--pc-text);
-  overflow: hidden;
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-}
 
 body.pc-operational .navbar {
   background-color: var(--pc-bg-panel) !important;
@@ -71,27 +86,24 @@ body.pc-operational .navbar-text {
   color: var(--pc-text) !important;
 }
 
-/* Container principal - ocupa altura após navbar */
 body.pc-operational main.container-fluid {
-  height: calc((100vh-60px) - var(--pc-nav-height));
-  max-height: calc((100vh-60px) - var(--pc-nav-height));
+  height: calc(100vh - var(--pc-nav-height));
+  max-height: calc(100vh - var(--pc-nav-height));
   overflow: hidden;
   padding: 0;
   margin: 0;
 }
 
-/* Moldura principal da aplicação */
 .pc-app-frame {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 60px) !important;
+  height: calc(100vh - var(--pc-nav-height)) !important;
   padding: var(--pc-gap);
   gap: var(--pc-gap);
   box-sizing: border-box;
   background-color: var(--pc-bg-main);
 }
 
-/* Layout de 3 colunas */
 .pc-map-layout {
   display: flex;
   flex-direction: row;
@@ -102,7 +114,7 @@ body.pc-operational main.container-fluid {
 }
 
 /* ========================================================================= */
-/* 3. PAINEL ESQUERDO (Filtros) - SCROLL FUNCIONAL                          */
+/* 3. PAINEL ESQUERDO (Filtros)                                              */
 /* ========================================================================= */
 
 .pc-panel-left {
@@ -117,69 +129,35 @@ body.pc-operational main.container-fluid {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  
-  /* ✅ CORREÇÃO: Limitar altura e permitir scroll */
-  max-height: calc(100vh - var(--pc-nav-height) - 36px);
-  overflow-y: auto !important;
+  max-height: calc(100vh - var(--pc-nav-height) - 40px);
+  overflow-y: auto;
   overflow-x: hidden;
-  
-  /* ✅ SCROLLBAR À ESQUERDA */
   direction: rtl;
 }
 
-/* ✅ Manter texto na direção correta */
 .pc-panel-left > * {
   direction: ltr;
   flex-shrink: 0;
 }
 
-/* Scrollbar personalizada */
-.pc-panel-left::-webkit-scrollbar,
-.pc-panel-right::-webkit-scrollbar {
-  width: 8px;
-}
-
-.pc-panel-left::-webkit-scrollbar-track,
-.pc-panel-right::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-}
-
-.pc-panel-left::-webkit-scrollbar-thumb,
-.pc-panel-right::-webkit-scrollbar-thumb {
-  background: var(--pc-accent);
-  border-radius: 4px;
-}
-
-.pc-panel-left::-webkit-scrollbar-thumb:hover,
-.pc-panel-right::-webkit-scrollbar-thumb:hover {
-  background: #e65f00;
-}
-
 /* ========================================================================= */
-/* 4. COLUNA CENTRAL - MAPA                                                 */
+/* 4. COLUNA CENTRAL - MAPA                                                  */
 /* ========================================================================= */
 
 .pc-map-column {
   flex: 1 !important;
-  min-width: 0; 
+  min-width: 0;
   position: relative;
   background: #1a2332;
   border: 1px solid var(--pc-border);
-  
-  /* 📐 LAYOUT ELÁSTICO: Removemos o calc() problemático. 
-     O Flexbox vai obrigar a coluna a esticar-se até ao limite inferior exato do Bento Box */
   display: flex !important;
   flex-direction: column !important;
-  height: 100% !important; 
+  height: 100% !important;
   min-height: 0 !important;
-
-  /* Aplica o raio do Bento Box na moldura exterior */
-  border-radius: var(--pc-radius, 12px) !important;
-  overflow: hidden !important; 
+  border-radius: var(--pc-radius) !important;
+  overflow: hidden !important;
 }
 
-/* 🎯 CORREÇÃO DE DIMENSÃO: Força o Leaflet a preencher o espaço que faltava em baixo */
 #map-container {
   position: absolute !important;
   top: 0;
@@ -189,37 +167,18 @@ body.pc-operational main.container-fluid {
   width: 100% !important;
   height: 100% !important;
   z-index: 1;
-  
-  /* Força os cantos redondos na base do contentor */
-  border-bottom-left-radius: var(--pc-radius, 12px) !important;
-  border-bottom-right-radius: var(--pc-radius, 12px) !important;
+  border-bottom-left-radius: var(--pc-radius) !important;
+  border-bottom-right-radius: var(--pc-radius) !important;
   overflow: hidden !important;
 }
 
-/* Garante que o motor do Leaflet acompanha o esticamento e a curva */
 .pc-map-column .leaflet-container {
   background: #1a2332;
   font-family: inherit;
   height: 100% !important;
   width: 100% !important;
-  border-bottom-left-radius: var(--pc-radius, 12px) !important;
-  border-bottom-right-radius: var(--pc-radius, 12px) !important;
-}
-
-.leaflet-popup-content .pc-map-popup {
-  color: #212529;
-  line-height: 1.4;
-  min-width: 140px;
-}
-
-/* Força apenas a div de estilos do Leaflet a acompanhar a curva */
-.pc-map-column .leaflet-container {
-  background: #1a2332;
-  font-family: inherit;
-  height: 100% !important;
-  width: 100% !important;
-  border-bottom-left-radius: var(--pc-radius, 8px) !important;
-  border-bottom-right-radius: var(--pc-radius, 8px) !important;
+  border-bottom-left-radius: var(--pc-radius) !important;
+  border-bottom-right-radius: var(--pc-radius) !important;
 }
 
 .leaflet-popup-content .pc-map-popup {
@@ -229,7 +188,7 @@ body.pc-operational main.container-fluid {
 }
 
 /* ========================================================================= */
-/* 5. PAINEL DIREITO (Validação) - SCROLL FUNCIONAL                         */
+/* 5. PAINEL DIREITO (Validação)                                             */
 /* ========================================================================= */
 
 .pc-panel-right {
@@ -244,19 +203,16 @@ body.pc-operational main.container-fluid {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  
-  /* ✅ CORREÇÃO: Limitar altura e permitir scroll */
-  max-height: calc(100vh - var(--pc-nav-height) - 36px); /* Altura total - navbar - gaps */
+  max-height: calc(100vh - var(--pc-nav-height) - 36px);
   overflow-y: auto !important;
   overflow-x: hidden;
 }
 
-/* ✅ CORREÇÃO: Drawer content com scroll independente */
 #drawer {
   display: flex;
   flex-direction: column;
   flex: 1;
-  min-height: 0; /* ✅ Permite scroll */
+  min-height: 0;
   gap: 0.75rem;
   width: 100%;
 }
@@ -266,39 +222,107 @@ body.pc-operational main.container-fluid {
   font-weight: 700;
   color: var(--pc-text);
   margin: 0;
-  flex-shrink: 0; /* ✅ Não expande */
+  flex-shrink: 0;
 }
 
 #drawer-content {
   flex: 1;
-  overflow-y: auto !important; /* ✅ Scroll independente */
+  overflow-y: auto !important;
   font-size: 0.9rem;
   color: var(--pc-text-muted);
-  min-height: 0; /* ✅ Crítico para scroll funcionar */
+  min-height: 0;
 }
 
 #drawer.open #drawer-content {
   color: var(--pc-text);
 }
 
-/* ✅ CORREÇÃO: Lista de pendentes com altura máxima */
 #pending-list {
-  max-height: 30vh; /* ✅ Limita altura da lista */
+  max-height: 30vh;
   overflow-y: auto;
 }
 
-#pending-list::-webkit-scrollbar { width: 6px; }
-#pending-list::-webkit-scrollbar-track {
-  background: var(--pc-bg-main);
-  border-radius: 3px;
+/* ========================================================================= */
+/* 6. SCROLLBARS PERSONALIZADAS                                              */
+/* ========================================================================= */
+
+.pc-panel-left::-webkit-scrollbar,
+.pc-panel-right::-webkit-scrollbar,
+#pending-list::-webkit-scrollbar {
+  width: 8px;
 }
-#pending-list::-webkit-scrollbar-thumb {
-  background: var(--pc-accent);
-  border-radius: 3px;
+
+.pc-panel-left::-webkit-scrollbar-track,
+.pc-panel-right::-webkit-scrollbar-track,
+#pending-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
 }
 
 /* ========================================================================= */
-/* 6. HANDLES DE REDIMENSIONAMENTO                                           */
+/* 20. NAVBAR UNIFICADA & SMART GATEWAY                                      */
+/* ========================================================================= */
+.navbar {
+    background-color: var(--pc-bg-panel) !important;
+    border-bottom: 1px solid var(--pc-border);
+    padding: 0.6rem 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+.navbar-brand {
+    font-weight: 800;
+    color: var(--pc-accent) !important;
+    letter-spacing: 0.5px;
+    font-size: 1.1rem;
+}
+.navbar-brand i { color: var(--pc-text); }
+.nav-link {
+    color: var(--pc-text-muted) !important;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+    margin: 0 4px;
+    padding: 0.5rem 0.8rem !important;
+}
+.nav-link:hover, .nav-link.active {
+    color: var(--pc-text) !important;
+    background-color: rgba(255, 107, 0, 0.08);
+}
+.pc-nav-gateway {
+    color: var(--pc-accent) !important;
+    border: 1px solid rgba(255, 107, 0, 0.4);
+    background-color: rgba(255, 107, 0, 0.05);
+    font-weight: 600 !important;
+}
+.pc-nav-gateway:hover {
+    background-color: rgba(255, 107, 0, 0.15) !important;
+    border-color: var(--pc-accent);
+}
+
+/* Garante que o toggler mobile herda o tema */
+.navbar-toggler {
+    border-color: var(--pc-border) !important;
+    color: var(--pc-accent) !important;
+}
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 107, 0, 0.3);
+}
+
+.pc-panel-left::-webkit-scrollbar-thumb,
+.pc-panel-right::-webkit-scrollbar-thumb,
+#pending-list::-webkit-scrollbar-thumb {
+  background: var(--pc-accent);
+  border-radius: 4px;
+}
+
+.pc-panel-left::-webkit-scrollbar-thumb:hover,
+.pc-panel-right::-webkit-scrollbar-thumb:hover,
+#pending-list::-webkit-scrollbar-thumb:hover {
+  background: var(--pc-accent-hover);
+}
+
+/* ========================================================================= */
+/* 7. HANDLES DE REDIMENSIONAMENTO                                           */
 /* ========================================================================= */
 
 .pc-resize-handle {
@@ -330,28 +354,19 @@ body.pc-operational main.container-fluid {
   opacity: 0.6;
 }
 
-.pc-resize-handle:hover::after {
-  opacity: 0.9;
-}
-
-.pc-panel-left .pc-resize-handle {
-  right: -4px;
-}
-
-.pc-panel-right .pc-resize-handle {
-  left: -4px;
-}
+.pc-panel-left .pc-resize-handle { right: -4px; }
+.pc-panel-right .pc-resize-handle { left: -4px; }
 
 /* ========================================================================= */
-/* 7. BANNER DE MODO                                                         */
+/* 8. BANNER DE MODO                                                         */
 /* ========================================================================= */
 
 .pc-mode-banner {
   display: flex !important;
-  align-items: center !important;       /* Centra verticalmente tudo */
-  justify-content: space-between !important; 
+  align-items: center !important;
+  justify-content: space-between !important;
   gap: 0.75rem;
-  height: 40px !important;              /* Fixa os 40px rigorosos */
+  height: 40px !important;
   min-height: 40px !important;
   max-height: 40px !important;
   padding: 0 1rem !important;
@@ -359,52 +374,57 @@ body.pc-operational main.container-fluid {
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius);
   flex-shrink: 0;
-  overflow: hidden !important;          /* Impede que os botões saltem para fora */
+  overflow: hidden !important;
 }
 
 .pc-mode-banner--field {
   background: rgba(13, 110, 253, 0.15) !important;
 }
 
-/* 🎯 RESET TOTAL E INJEÇÃO DE ALTURA NOS BOTÕES INTERNOS */
 .pc-mode-banner .btn,
 .pc-mode-banner a,
 .pc-mode-banner .pc-btn-critical,
 .pc-mode-banner .btn-outline-light {
-  height: 24px !important;              /* Obriga os dois a terem exatamente 24px */
+  height: 24px !important;
   max-height: 24px !important;
   min-height: 24px !important;
-  padding-top: 0 !important;            /* Elimina qualquer padding do Bootstrap */
-  padding-bottom: 0 !important;
-  padding-left: 10px !important;
-  padding-right: 10px !important;
-  line-height: 24px !important;         /* Centra o texto perfeitamente na vertical */
-  font-size: 10px !important;           /* Letra tática compacta */
+  padding: 0 10px !important;
+  line-height: 24px !important;
+  font-size: 10px !important;
   font-weight: bold !important;
   text-transform: uppercase !important;
   letter-spacing: 0.5px;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  margin: 0 !important;                 /* Remove margens que os empurram */
-  border-radius: 4px !important;        /* Cantos ligeiramente arredondados nos botões */
+  margin: 0 !important;
+  border-radius: 4px !important;
 }
 
-/* Garante que a div que agrupa os botões no HTML também se alinha horizontalmente */
 .pc-mode-banner .d-flex {
   align-items: center !important;
   height: 100% !important;
 }
 
-/* Garante que o texto à esquerda ("MODO CAMPO ATIVO") fica alinhado ao centro */
 .pc-mode-banner span {
   line-height: 1 !important;
   display: inline-flex !important;
   align-items: center !important;
 }
 
+/* Modos Comando e Campo */
+.pc-app-frame[data-pc-mode="command"] .pc-mode-banner--command {
+  background-color: #3e2723 !important;
+  border-bottom: 2px solid var(--pc-accent);
+}
+
+.pc-app-frame[data-pc-mode="field"] .pc-mode-banner--field {
+  background-color: #0d1b2a !important;
+  border-bottom: 2px solid #00b4d8;
+}
+
 /* ========================================================================= */
-/* 8. FORMULÁRIOS DOS PAINÉIS                                                */
+/* 9. FORMULÁRIOS DOS PAINÉIS                                                */
 /* ========================================================================= */
 
 .pc-panel__title {
@@ -481,54 +501,22 @@ body.pc-operational main.container-fluid {
 }
 
 /* ========================================================================= */
-/* 9. DRAWER (Painel de detalhes)                                            */
-/* ========================================================================= */
-
-#drawer {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  gap: 0.75rem;
-}
-
-#drawer-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--pc-text);
-  margin: 0;
-}
-
-#drawer-content {
-  flex: 1;
-  overflow-y: auto;
-  font-size: 0.9rem;
-  color: var(--pc-text-muted);
-}
-
-#drawer.open #drawer-content {
-  color: var(--pc-text);
-}
-
-/* ========================================================================= */
 /* 10. LEGENDAS FLUTUANTES                                                   */
 /* ========================================================================= */
 
 .pc-floating-legend {
   position: absolute;
   z-index: 1000;
-  /* 🌗 Fundo ligeiramente mais transparente (0.75 em vez de 0.9) */
   background: rgba(18, 24, 36, 0.75) !important;
   border: 1px solid rgba(248, 249, 250, 0.15);
   border-radius: 8px;
   padding: 0.6rem 0.8rem;
-  backdrop-filter: blur(8px); /* Mantém o efeito vítreo tático de desfoque */
+  backdrop-filter: blur(8px);
   max-width: 220px;
   font-size: 0.75rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* Sombra reforçada para contraste */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-/* 📐 SUBIDA DAS LEGENDAS: Alterado de 20px para 35px para não colarem abaixo */
 .pc-legend-materials {
   bottom: 35px !important;
   left: 20px;
@@ -757,6 +745,7 @@ body.pc-operational main.container-fluid {
   padding: 0.75rem 1rem;
   text-align: left;
   width: 100%;
+  animation: slideInLeft 0.3s ease forwards;
 }
 
 .pc-pending-item:hover {
@@ -788,25 +777,6 @@ body.pc-operational main.container-fluid {
 @keyframes slideInLeft {
   from { opacity: 0; transform: translateX(-10px); }
   to { opacity: 1; transform: translateX(0); }
-}
-
-.pc-pending-item {
-  animation: slideInLeft 0.3s ease forwards;
-}
-
-#pending-list {
-  max-height: 40vh;
-  overflow-y: auto;
-}
-
-#pending-list::-webkit-scrollbar { width: 6px; }
-#pending-list::-webkit-scrollbar-track {
-  background: var(--pc-bg-main);
-  border-radius: 3px;
-}
-#pending-list::-webkit-scrollbar-thumb {
-  background: var(--pc-accent);
-  border-radius: 3px;
 }
 
 /* ========================================================================= */
@@ -866,126 +836,212 @@ body.pc-operational main.container-fluid {
 }
 
 /* ========================================================================= */
-/* 14. MOBILE - Bottom Sheets                                                */
+/* 14. MOBILE - NAVBAR + BOTTOM SHEETS (< 768px)                             */
 /* ========================================================================= */
 
-.pc-sheet-input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-  width: 0;
-  height: 0;
-}
-
-.pc-fab {
-  position: fixed;
-  right: 1rem;
-  z-index: 1100;
-  width: var(--pc-touch-min);
-  height: var(--pc-touch-min);
-  min-width: var(--pc-touch-min);
-  min-height: var(--pc-touch-min);
-  border-radius: 50%;
-  background-color: var(--pc-accent);
-  color: #1a1a1a;
-  border: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-  cursor: pointer;
-  margin: 0;
-}
-
-.pc-fab-filters { bottom: 5.5rem; }
-.pc-fab-details { bottom: 1rem; }
-
-.pc-sheet-backdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  z-index: 1040;
-  cursor: pointer;
-}
-
 @media (max-width: 767px) {
-  body.pc-operational main.container-fluid {
-    height: 100vh;
-    max-height: 100vh;
+  /* NAVBAR compacta */
+  body.pc-operational .navbar {
+    display: flex !important;
+    min-height: 48px;
+    padding: 0 0.75rem;
+    position: sticky;
+    top: 0;
+    z-index: 1030;
   }
 
-  body.pc-operational .navbar {
-    display: none;
+  body.pc-operational .navbar-brand {
+    font-size: 0.9rem;
+    padding: 0;
+  }
+
+  body.pc-operational .navbar-toggler {
+    display: flex !important;
+    padding: 0.25rem 0.5rem;
+    font-size: 1.1rem;
+    border: 1px solid var(--pc-border);
+    border-radius: 6px;
+    color: var(--pc-text) !important;
+    background-color: transparent;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body.pc-operational .navbar-toggler:focus {
+    box-shadow: 0 0 0 2px rgba(255, 107, 0, 0.4);
+  }
+
+  body.pc-operational .navbar-collapse {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--pc-bg-panel);
+    border-bottom: 1px solid var(--pc-border);
+    padding: 0.5rem 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    z-index: 1029;
+  }
+
+  body.pc-operational .navbar-collapse.show {
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  body.pc-operational .navbar-collapse .nav-link {
+    padding: 0.75rem 0.5rem !important;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: background-color 0.2s;
+  }
+
+  body.pc-operational .navbar-collapse .nav-link:hover {
+    background-color: rgba(255, 107, 0, 0.15);
+  }
+
+  body.pc-operational .navbar-text {
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  /* APP FRAME ajustado */
+  body.pc-operational main.container-fluid {
+    height: calc(100vh - 48px);
+    max-height: calc(100vh - 48px);
+    overflow: hidden;
   }
 
   .pc-app-frame {
     padding: 0;
     gap: 0;
+    height: calc(100vh - 48px) !important;
   }
 
+  /* Layout em coluna */
   .pc-map-layout {
     flex-direction: column;
     gap: 0;
+    height: 100%;
   }
 
+  .pc-map-column {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+
+  #map-container {
+    min-height: calc(100vh - 48px);
+    border-radius: 0 !important;
+  }
+
+  /* PAINÉIS como Bottom Sheets (ocultos por defeito) */
   .pc-panel-left,
   .pc-panel-right {
-    display: flex !important;
+    display: none !important;
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
     width: 100%;
     max-width: 100%;
-    height: 60vh;
-    max-height: 60vh;
+    height: 65vh;
+    max-height: 65vh;
     z-index: 1050;
     transform: translateY(100%);
     transition: transform 0.3s ease;
-    border-radius: 12px 12px 0 0;
+    border-radius: 16px 16px 0 0;
     border: 1px solid var(--pc-border);
+    border-bottom: none;
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.4);
+    padding: 1rem;
+    background-color: var(--pc-bg-panel);
+    overflow-y: auto;
   }
 
-  .pc-map-column {
-    flex: 1;
-    width: 100%;
-    border-radius: 0;
-  }
-
-  #map-container {
-    min-height: 100vh;
-  }
-
-  #pc-toggle-filters:checked ~ .pc-map-layout .pc-panel-left {
-    transform: translateY(0);
-  }
-
-  #pc-toggle-details:checked ~ .pc-map-layout .pc-panel-right {
-    transform: translateY(0);
-  }
-
-  #pc-toggle-filters:checked ~ label.pc-sheet-backdrop--filters,
-  #pc-toggle-details:checked ~ label.pc-sheet-backdrop--details {
+  /* Handle visual no topo */
+  .pc-panel-left::before,
+  .pc-panel-right::before {
+    content: '';
     display: block;
+    width: 40px;
+    height: 4px;
+    background: var(--pc-border);
+    border-radius: 2px;
+    margin: 0 auto 0.75rem;
+    flex-shrink: 0;
   }
 
-  #drawer.open {
-    z-index: 1060;
+  /* FABs (botões flutuantes) */
+  .pc-fab {
+    display: flex !important;
+    position: fixed;
+    z-index: 1100;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    border-radius: 50%;
+    background-color: var(--pc-accent);
+    color: #1a1a1a;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    right: 1rem;
   }
-}
 
-@media (min-width: 768px) {
-  .pc-fab,
-  .pc-sheet-backdrop {
-    display: none !important;
+  .pc-fab-filters { bottom: 6rem; }
+  .pc-fab-details { bottom: 1rem; }
+
+  /* Legendas reposicionadas */
+  .pc-legend-materials { bottom: 8rem !important; left: 10px; }
+  .pc-legend-layers { bottom: 8rem !important; right: 70px; }
+
+  /* Banner de modo mais compacto */
+  .pc-mode-banner {
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    padding: 0 0.5rem !important;
+    font-size: 0.7rem;
+  }
+
+  .pc-mode-banner .btn,
+  .pc-mode-banner a {
+    height: 22px !important;
+    max-height: 22px !important;
+    min-height: 22px !important;
+    font-size: 9px !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    line-height: 22px !important;
   }
 }
 
 /* ========================================================================= */
-/* 15. PÁGINAS AUXILIARES (Registo, Login, etc.)                             */
+/* 15. TABLET (768px - 1024px)                                               */
+/* ========================================================================= */
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .pc-panel-left { display: none !important; }
+  .pc-panel-right { width: 280px !important; min-width: 250px !important; }
+  .pc-map-column { flex: 1 !important; }
+  .pc-fab { display: flex !important; }
+}
+
+/* Esconder FABs em desktop */
+@media (min-width: 1025px) {
+  .pc-fab { display: none !important; }
+}
+
+/* ========================================================================= */
+/* 16. PÁGINAS AUXILIARES (Registo, Login, etc.)                             */
 /* ========================================================================= */
 
 body.pc-registo-page {
@@ -1025,11 +1081,38 @@ body.pc-registo-page main.container-fluid {
   box-shadow: 0 0 0 0.2rem rgba(255, 107, 0, 0.25);
 }
 
+.pc-input:disabled,
+.form-select.pc-input:disabled {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+  color: #cbd5e1 !important;
+  opacity: 0.85;
+  cursor: not-allowed;
+}
+
+/* Grupos de botões táteis */
+.pc-btn-group-tactile .btn-check + .btn-outline-light {
+  border-color: var(--pc-border);
+  color: var(--pc-text-muted);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.pc-btn-group-tactile .btn-check:checked + .btn-outline-light {
+  background-color: var(--pc-accent) !important;
+  border-color: var(--pc-accent) !important;
+  color: #ffffff !important;
+  font-weight: bold;
+}
+
+.pc-touch-btn {
+  padding: 12px;
+  border-radius: 8px;
+}
+
 /* ========================================================================= */
-/* 16. FICHA TÉCNICA (Página dedicada)                                       */
+/* 17. FICHA TÉCNICA (Página dedicada)                                       */
 /* ========================================================================= */
 
-/* Override específico para a página da ficha */
 body:has(.pc-ficha-header) {
   overflow-y: auto !important;
   height: auto !important;
@@ -1063,7 +1146,6 @@ body:has(.pc-ficha-header) .pc-map-layout {
   margin: 0 auto 1.5rem;
 }
 
-/* Ficha - Container */
 body:has(.pc-ficha-header) .container-fluid {
   max-width: 1400px;
   margin: 0 auto;
@@ -1076,18 +1158,15 @@ body:has(.pc-ficha-header) .container-fluid > .row {
   margin: 0 auto;
 }
 
-/* 🎯 CORREÇÃO DE ALINHAMENTO DO QR CODE 
-   Força a coluna a esticar até ao fim e empurra o card do QR code para alinhar por baixo */
 body:has(.pc-ficha-header) .row:has(.pc-qr-card) {
   display: flex !important;
   flex-wrap: wrap;
 }
 
 .pc-qr-card {
-  margin-top: auto !important; /* 🔥 Desloca o QR Code para a base exata do alinhamento */
+  margin-top: auto !important;
 }
 
-/* Ficha - Componentes */
 .pc-ficha-tecnica {
   font-size: 0.9rem;
   line-height: 1.5;
@@ -1109,12 +1188,10 @@ body:has(.pc-ficha-header) .row:has(.pc-qr-card) {
   color: var(--pc-text-muted);
 }
 
-/* Mini-mapa da ficha */
 #mini-map {
   border-radius: 8px;
 }
 
-/* QR Code */
 #qrcode {
   width: 150px !important;
   height: 150px !important;
@@ -1133,12 +1210,10 @@ body:has(.pc-ficha-header) .row:has(.pc-qr-card) {
   max-height: 150px !important;
 }
 
-/* Placeholder de foto */
 .pc-photo-placeholder {
   overflow: hidden;
 }
 
-/* Checkboxes da ficha */
 .form-check-input[type="checkbox"] {
   width: 1.5em;
   height: 1.5em;
@@ -1152,7 +1227,7 @@ body:has(.pc-ficha-header) .row:has(.pc-qr-card) {
 }
 
 /* ========================================================================= */
-/* 17. MODO IMPRESSÃO                                                        */
+/* 18. MODO IMPRESSÃO                                                        */
 /* ========================================================================= */
 
 @media print {
@@ -1190,108 +1265,222 @@ body:has(.pc-ficha-header) .row:has(.pc-qr-card) {
   }
 }
 
-/* ==========================================================================
-   SIG-ALDEIAS - TEMA OPERACIONAL (BENTO BOX GRID & HIGH CONTRAST)
-   ========================================================================== */
+/* ========================================================================= */
+/* 19. FORMULÁRIOS RESPONSIVOS                                               */
+/* ========================================================================= */
 
-:root {
-    --pc-bg-main: #0a0f1d;       /* Fundo principal (Azul Noturno/Escuro) */
-    --pc-bg-panel: #111a2e;      /* Fundo dos painéis Bento Box (Antracite) */
-    --pc-border-color: rgba(255, 255, 255, 0.08); /* Bordas táticas discretas */
-    --pc-text-main: #e2e8f0;     /* Texto principal de alta legibilidade */
-    --pc-text-muted: #94a3b8;    /* Texto secundário/ajuda */
-    --pc-accent: #ff7a00;        /* Laranja Alerta/Crítico */
-    --pc-accent-hover: #e06c00;  /* Laranja Alerta (Hover) */
+@media (max-width: 1024px) {
+  .pc-registo-wrap { max-width: 100%; padding: 0 1rem; }
+  .pc-registo-form { padding: 1rem; }
 }
 
-/* Base da Página Operacional */
-body.pc-operational {
-    background-color: var(--pc-bg-main);
-    color: var(--pc-text-main);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+@media (max-width: 767px) {
+  body.pc-registo-page main.container-fluid { padding: 0.5rem; }
+  .pc-registo-wrap { max-width: 100%; }
+  .pc-registo-header, .pc-registo-form { padding: 0.75rem; }
+  
+  .pc-input, .pc-registo-form .form-control, .pc-registo-form .form-select {
+    min-height: 48px;
+    font-size: 16px;
+  }
+  
+  .pc-btn-group-tactile .btn { min-height: 44px; padding: 0.75rem; }
+  .form-check-input { width: 1.5em; height: 1.5em; }
+  .form-check-label { font-size: 1rem; padding-left: 0.5rem; }
 }
 
-/* Estrutura Bento Box (Painéis Modulares) */
-.pc-panel {
+/* Estilo para camada 2.5D */
+.leaflet-overlay-pane svg {
+    transition: opacity 0.3s ease;
+}
+
+/* Cores por material */
+.material-betão { fill: #3b82f6; }
+.material-madeira { fill: #ef4444; }
+.material-alvenaria { fill: #eab308; }
+
+.building-25d-roof {
+    stroke: #333;
+    stroke-width: 1;
+    opacity: 0.9;
+}
+
+.building-25d-wall {
+    stroke: #222;
+    stroke-width: 0.5;
+    opacity: 0.7;
+}
+
+/* FORÇA TOTAL - NAVBAR MOBILE */
+@media (max-width: 767px) {
+  body.pc-operational .navbar,
+  .navbar,
+  nav.navbar {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: sticky !important;
+    top: 0 !important;
+    width: 100% !important;
+    min-height: 48px !important;
+    background-color: #121824 !important;
+    z-index: 9999 !important;
+  }
+  
+  body.pc-operational .navbar-toggler,
+  .navbar-toggler {
+    display: block !important;
+    visibility: visible !important;
+  }
+}
+
+/* ========================================================================= */
+/* 20. SMART GATEWAY - 3 COLUNAS + FILTRO POR PERFIL                         */
+/* ========================================================================= */
+body.pc-gateway {
+    background-color: var(--pc-bg-main) !important;
+    color: var(--pc-text) !important;
+    overflow-y: auto !important;
+    height: auto !important;
+    padding-top: 60px !important;
+}
+
+body.pc-gateway main.container-fluid {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 2rem 1rem !important;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.pc-gateway-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.pc-gateway-header {
+    background: linear-gradient(135deg, rgba(255, 107, 0, 0.12) 0%, rgba(255, 107, 0, 0.04) 100%);
+    border: 1px solid var(--pc-border);
+    border-radius: var(--pc-radius);
+    padding: 2rem 1.5rem;
+    text-align: center;
+}
+
+.pc-gateway-header h2 {
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    font-size: 1.75rem;
+}
+
+.pc-gateway-welcome {
     background-color: var(--pc-bg-panel);
-    border: 1px solid var(--pc-border-color);
-    border-radius: 12px;
-    color: var(--pc-text-main);
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    border: 1px solid var(--pc-border);
+    border-radius: var(--pc-radius);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
 }
 
-/* Classes Utilitárias de Texto */
-.pc-text { color: var(--pc-text-main) !important; }
-.pc-text-muted { color: var(--pc-text-muted) !important; }
-
-/* Customização de Inputs Operacionais */
-.pc-input {
-    background-color: rgba(10, 15, 29, 0.7) !important;
-    border: 1px solid var(--pc-border-color) !important;
-    color: var(--pc-text-main) !important;
-    border-radius: 6px;
-}
-.pc-input:focus {
-    border-color: var(--pc-accent) !important;
-    box-shadow: 0 0 0 3px rgba(255, 74, 74, 0.25) !important;
-    outline: none;
+.pc-gateway-welcome h4 {
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+    font-size: 1.1rem;
 }
 
-/* Estado dos Inputs Desativados (Garante legibilidade no terreno) */
-.pc-input:disabled, 
-.form-select.pc-input:disabled {
-    background-color: rgba(255, 255, 255, 0.02) !important;
-    border-color: rgba(255, 255, 255, 0.05) !important;
-    color: #cbd5e1 !important;
-    opacity: 0.85;
-    cursor: not-allowed;
+.pc-gateway-modules h3 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+    padding-left: 0.5rem;
+    border-left: 3px solid var(--pc-accent);
 }
 
-/* Botões de Ação Crítica / Primários */
-.pc-btn-critical {
-    background-color: var(--pc-accent) !important;
-    border-color: var(--pc-accent) !important;
-    color: #ffffff !important;
-    transition: background-color 0.15s ease;
-}
-.pc-btn-critical:hover:not(:disabled) {
-    background-color: var(--pc-accent-hover) !important;
-    border-color: var(--pc-accent-hover) !important;
-}
-.pc-btn-critical:disabled {
-    background-color: #334155 !important;
-    border-color: #334155 !important;
-    color: #94a3b8 !important;
-    opacity: 0.6;
+/* ✅ GRID DE 3 COLUNAS */
+.pc-gateway-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
 }
 
-/* Grupos de Botões Táteis (Pisos e Materiais) */
-.pc-btn-group-tactile .btn-check + .btn-outline-light {
-    border-color: var(--pc-border-color);
+.pc-gateway-card {
+    background-color: var(--pc-bg-panel);
+    border: 1px solid var(--pc-border);
+    border-radius: var(--pc-radius);
+    padding: 1.5rem;
+    text-decoration: none;
+    color: var(--pc-text);
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 160px;
+}
+
+.pc-gateway-card:hover {
+    border-color: var(--pc-accent);
+    background-color: rgba(255, 107, 0, 0.06);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    color: var(--pc-text);
+}
+
+.pc-gateway-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    background: rgba(255, 107, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+    color: var(--pc-accent);
+    transition: transform 0.25s ease;
+}
+
+.pc-gateway-card:hover .pc-gateway-icon {
+    transform: scale(1.08);
+    background: rgba(255, 107, 0, 0.25);
+}
+
+.pc-gateway-card h4 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    color: var(--pc-text);
+}
+
+.pc-gateway-card p {
+    font-size: 0.88rem;
+    line-height: 1.4;
+    margin: 0;
     color: var(--pc-text-muted);
-    background-color: rgba(255, 255, 255, 0.02);
-}
-.pc-btn-group-tactile .btn-check:checked + .btn-outline-light {
-    background-color: var(--pc-accent) !important;
-    border-color: var(--pc-accent) !important;
-    color: #ffffff !important;
-    font-weight: bold;
 }
 
-/* Elementos de Toque no Telemóvel */
-.pc-touch-btn {
-    padding: 12px;
-    border-radius: 8px;
+/* Responsivo: 2 colunas em tablet, 1 em mobile */
+@media (max-width: 992px) {
+    .pc-gateway-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
-/* 🟫 Modo Comando (Supervisor): Cabeçalho Castanho Tático */
-.pc-app-frame[data-pc-mode="command"] .pc-mode-banner--command {
-    background-color: #3e2723 !important; /* Castanho escuro militar/comando */
-    border-bottom: 2px solid var(--pc-accent); /* O teu Laranja de alta visibilidade */
-}
-
-/* 🟦 Modo Campo (Operador): Cabeçalho Azul Escuro */
-.pc-app-frame[data-pc-mode="field"] .pc-mode-banner--field {
-    background-color: #0d1b2a !important; /* Azul escuro operacional */
-    border-bottom: 2px solid #00b4d8; /* Azul ciano de campo */
+@media (max-width: 576px) {
+    .pc-gateway-grid {
+        grid-template-columns: 1fr;
+    }
+    .pc-gateway-welcome {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .pc-gateway-header {
+        padding: 1.5rem 1rem;
+    }
+    .pc-gateway-header h2 {
+        font-size: 1.4rem;
+    }
 }

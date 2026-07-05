@@ -75,7 +75,7 @@ async def login_page(request: Request):
 
 @app.get("/relatorios", response_class=HTMLResponse)
 async def reports_page(request: Request):
-    return templates.TemplateResponse("relatorios.html", {"request": request, "title": "Relatórios - SIG-Aldeias"})
+    return templates.TemplateResponse("reports.html", {"request": request, "title": "Relatórios - SIG-Aldeias"})
 
 @app.get("/registo", response_class=HTMLResponse)
 async def registo_page(request: Request):
@@ -169,6 +169,22 @@ async def ficha_page(request: Request, household_id: int, db: Session = Depends(
         },
     )
 
+@app.get("/ficha-search", response_class=HTMLResponse)
+async def ficha_search_page(request: Request):
+    """Página de pesquisa de fichas técnicas"""
+    return templates.TemplateResponse(
+        "ficha-search.html",
+        {"request": request, "title": "Pesquisar Ficha Técnica - SIG-Aldeias"}
+    )
+
+
+@app.get("/sobre", response_class=HTMLResponse)
+async def sobre_page(request: Request):
+    return templates.TemplateResponse(
+        "sobre.html",
+        {"request": request, "title": "Sobre o Projeto - SIG-Aldeias"}
+    )
+
 # ← NOVA HOMEPAGE (Porta de Entrada com Login Integrado)
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
@@ -176,6 +192,6 @@ async def home(request: Request):
         "home.html",
         {
             "request": request,
-            "title": "SIG-Aldeias - Acesso Operacional",
+            "title": "Portal Operacional- SIG-Aldeias",
         },
     )

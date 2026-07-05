@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% block title %}Sobre o Projeto - SIG-Aldeias{% endblock %}
+{% block body_class %}pc-gateway{% endblock %}
+{% block main_class %}container-fluid{% endblock %}
+
+{% block extra_head %}
+<style>
+    .pc-about-section {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    .pc-about-header {
+        text-align: center;
+        margin-bottom: 2.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .pc-about-header h1 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: var(--pc-text-primary, #fff);
+        margin-bottom: 0.5rem;
+    }
+    .pc-about-header .pc-version {
+        font-size: 0.875rem;
+        color: var(--pc-text-muted, #94a3b8);
+        font-weight: 400;
+    }
+    .pc-about-block {
+        margin-bottom: 2rem;
+    }
+    .pc-about-block h2 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--pc-text-primary, #fff);
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .pc-about-block h2 i {
+        color: var(--pc-accent, #ffc107);
+        font-size: 1rem;
+    }
+    .pc-about-block p {
+        color: var(--pc-text-secondary, #cbd5e1);
+        line-height: 1.6;
+        margin-bottom: 0.75rem;
+        font-size: 0.9375rem;
+    }
+    .pc-about-meta {
+        background: rgba(0,0,0,0.2);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-top: 1.5rem;
+    }
+    .pc-about-meta dl {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.5rem 1rem;
+        margin: 0;
+    }
+    .pc-about-meta dt {
+        font-weight: 600;
+        color: var(--pc-text-muted, #94a3b8);
+        font-size: 0.8125rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .pc-about-meta dd {
+        color: var(--pc-text-secondary, #cbd5e1);
+        margin: 0;
+        font-size: 0.9375rem;
+    }
+    .pc-about-meta dd a {
+        color: var(--pc-accent, #ffc107);
+        text-decoration: none;
+        transition: opacity 0.2s;
+    }
+    .pc-about-meta dd a:hover {
+        opacity: 0.8;
+        text-decoration: underline;
+    }
+    .pc-about-features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+    .pc-about-feature {
+        background: rgba(0,0,0,0.15);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 6px;
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        color: var(--pc-text-secondary, #cbd5e1);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .pc-about-feature i {
+        color: var(--pc-accent, #ffc107);
+        font-size: 0.875rem;
+    }
+    .pc-about-footer {
+        text-align: center;
+        margin-top: 2.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        font-size: 0.8125rem;
+        color: var(--pc-text-muted, #94a3b8);
+    }
+    .pc-about-footer a {
+        color: var(--pc-text-secondary, #cbd5e1);
+        text-decoration: none;
+    }
+    .pc-about-footer a:hover {
+        color: var(--pc-accent, #ffc107);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pc-about-section">
+    
+    <!-- Header -->
+    <div class="pc-about-header">
+        <h1>SIG-Aldeias</h1>
+        <div class="pc-version">Sistema de Informação Geográfica para Proteção Civil · v2.0.1</div>
+    </div>
+
+    <!-- Sobre o Projeto -->
+    <div class="pc-about-block">
+        <h2><i class="bi bi-info-circle"></i>Sobre o Projeto</h2>
+        <p>
+            O <strong>SIG-Aldeias</strong> é uma plataforma operacional desenvolvida para apoiar as equipas de Proteção Civil na gestão territorial de agregados familiares em zonas de risco rural. Permite o registo georreferenciado de habitações, identificação de vulnerabilidades populacionais, mapeamento de infraestruturas críticas e visualização tática para intervenção em emergência.
+        </p>
+        <p>
+            Este projeto foi desenvolvido no âmbito do <strong>Projeto Final da Licenciatura em Engenharia Informática</strong> da <strong>Universidade Aberta (UAB)</strong>, sob orientação do Professor Jorge Trindade e do Professor Pedro Pestana, em colaboração com a Proteção Civil de Abrantes.
+        </p>
+    </div>
+
+    <!-- Funcionalidades -->
+    <div class="pc-about-block">
+        <h2><i class="bi bi-gear"></i>Funcionalidades Principais</h2>
+        <div class="pc-about-features">
+            <div class="pc-about-feature">
+                <i class="bi bi-map"></i>
+                <span>Mapa tático com camadas operacionais</span>
+            </div>
+            <div class="pc-about-feature">
+                <i class="bi bi-geo-alt"></i>
+                <span>Registo georreferenciado de agregados</span>
+            </div>
+            <div class="pc-about-feature">
+                <i class="bi bi-qr-code"></i>
+                <span>Fichas técnicas com QR Code</span>
+            </div>
+            <div class="pc-about-feature">
+                <i class="bi bi-people"></i>
+                <span>Identificação de vulnerabilidades</span>
+            </div>
+            <div class="pc-about-feature">
+                <i class="bi bi-shield-check"></i>
+                <span>Inteligência de evacuação (TEE)</span>
+            </div>
+            <div class="pc-about-feature">
+                <i class="bi bi-file-earmark-code"></i>
+                <span>Importação de dados BIM/GeoJSON</span>
+            </div>
+            <div class="pc-about-feature">
+                <i class="bi bi-person-badge"></i>
+                <span>Controlo de acesso por perfil (RBAC)</span>
+            </div>
+            <div class="pc-about-feature">
+                <i class="bi bi-phone"></i>
+                <span>Interface responsiva mobile-first</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informação Técnica -->
+    <div class="pc-about-block">
+        <h2><i class="bi bi-code-slash"></i>Informação Técnica</h2>
+        <div class="pc-about-meta">
+            <dl>
+                <dt>Backend</dt>
+                <dd>FastAPI (Python 3.10+) · SQLAlchemy 2.0 · Pydantic v2</dd>
+                
+                <dt>Frontend</dt>
+                <dd>HTML5 · Bootstrap 5 · Leaflet.js 1.9.4 · JavaScript ES6+</dd>
+                
+                <dt>Base de Dados</dt>
+                <dd>SQLite (preparado para PostgreSQL/PostGIS)</dd>
+                
+                <dt>Autenticação</dt>
+                <dd>JWT (JSON Web Tokens) · bcrypt (cost=12)</dd>
+                
+                <dt>Standards</dt>
+                <dd>GeoJSON (RFC 7946) · WKT (OGC) · REST API</dd>
+                
+                <dt>Repositório</dt>
+                <dd><a href="https://github.com/pseruz/sig-aldeias" target="_blank" rel="noopener">github.com/pseruz/sig-aldeias</a></dd>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Autoria -->
+    <div class="pc-about-block">
+        <h2><i class="bi bi-person"></i>Autoria</h2>
+        <div class="pc-about-meta">
+            <dl>
+                <dt>Autor</dt>
+                <dd>Pedro Sérgio Pinto Cruz · Nº 2003655</dd>
+                
+                <dt>Curso</dt>
+                <dd>Licenciatura em Engenharia Informática</dd>
+                
+                <dt>Instituição</dt>
+                <dd>Universidade Aberta (UAB)</dd>
+                
+                <dt>Orientadores</dt>
+                <dd>Prof. Jorge Trindade · Prof. Pedro Pestana</dd>
+                
+                <dt>Colaboração</dt>
+                <dd>Proteção Civil de Abrantes</dd>
+                
+                <dt>Data</dt>
+                <dd>Julho 2026</dd>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="pc-about-footer">
+        <p>
+            © 2026 SIG-Aldeias · Projeto académico desenvolvido no âmbito da Licenciatura em Engenharia Informática da Universidade Aberta.
+        </p>
+        <p>
+            <a href="/">Voltar ao Portal Operacional</a>
+        </p>
+    </div>
+
+</div>
+{% endblock %}

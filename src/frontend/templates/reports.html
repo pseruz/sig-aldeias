@@ -1,195 +1,713 @@
 {% extends "base.html" %}
 {% block title %}Relatórios - SIG-Aldeias{% endblock %}
 
+{% block extra_head %}
+<!-- jsPDF para geração de PDF no cliente -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+    .pc-report-header {
+        background: linear-gradient(135deg, rgba(255,107,0,0.1) 0%, rgba(255,107,0,0.05) 100%);
+        border: 1px solid var(--pc-border);
+        border-radius: var(--pc-radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .pc-report-header h2 {
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+    .pc-report-section {
+        background-color: var(--pc-bg-panel);
+        border: 1px solid var(--pc-border);
+        border-radius: var(--pc-radius);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .pc-report-section h5 {
+        color: var(--pc-accent);
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--pc-border);
+    }
+    .pc-metric-card {
+        background: rgba(0,0,0,0.2);
+        border: 1px solid var(--pc-border);
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+    }
+    .pc-metric-card .value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--pc-accent);
+        margin-bottom: 0.25rem;
+    }
+    .pc-metric-card .label {
+        font-size: 0.75rem;
+        color: var(--pc-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .pc-chart-bar {
+        height: 24px;
+        border-radius: 4px;
+        background: var(--pc-accent);
+        margin-bottom: 0.5rem;
+        transition: width 0.5s ease;
+        position: relative;
+    }
+    .pc-chart-bar .bar-label {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+    .pc-chart-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    .pc-chart-row .row-label {
+        width: 120px;
+        font-size: 0.85rem;
+        color: var(--pc-text);
+        flex-shrink: 0;
+    }
+    .pc-chart-row .bar-container {
+        flex: 1;
+        background: rgba(0,0,0,0.3);
+        border-radius: 4px;
+        height: 24px;
+        overflow: hidden;
+    }
+    .pc-chart-row .bar-value {
+        width: 60px;
+        text-align: right;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--pc-text);
+        flex-shrink: 0;
+    }
+    .pc-export-btn {
+        background-color: var(--pc-accent);
+        color: #1a1a1a;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .pc-export-btn:hover {
+        background-color: var(--pc-accent-hover);
+        transform: translateY(-2px);
+    }
+    .pc-export-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .pc-export-btn .spinner {
+        display: none;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #1a1a1a;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    .pc-export-btn.loading .spinner { display: inline-block; }
+    .pc-export-btn.loading .btn-text { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="d-flex align-items-center mb-4 pc-panel p-3">
-        <h2 class="pc-text mb-0 h4 fw-bold">
-            <i class="bi bi-file-earmark-bar-graph text-danger me-2"></i>Central de Relatórios e Auditoria
-        </h2>
-    </div>
+<div class="pc-report-header">
+    <h2 class="pc-text">
+        <i class="bi bi-file-earmark-bar-graph me-2" style="color: var(--pc-accent);"></i>
+        Central de Relatórios e Auditoria
+    </h2>
+    <p class="pc-text-muted mb-0">
+        Exporte dados filtrados para análise externa e arquivamento institucional
+    </p>
+</div>
 
-    <div class="row g-4">
-        <div class="col-lg-5">
-            <div class="pc-panel p-4 h-100" style="border: 1px solid var(--pc-border-color, rgba(255,255,255,0.1));">
-                <div class="d-flex align-items-center mb-3">
-                    <i class="bi bi-funnel text-warning fs-4 me-2"></i>
-                    <h5 class="pc-text fw-bold mb-0">Filtros de Segmentação</h5>
+<div class="row g-3">
+    <!-- Coluna Esquerda: Filtros -->
+    <div class="col-lg-4">
+        <div class="pc-report-section">
+            <h5><i class="bi bi-funnel me-2"></i>Filtros de Segmentação</h5>
+            
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Material Estrutural</label>
+                <select id="filter-material" class="form-select">
+                    <option value="">Todos os Materiais</option>
+                    <option value="betão">Betão</option>
+                    <option value="alvenaria">Alvenaria</option>
+                    <option value="madeira">Madeira</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Estado de Validação</label>
+                <select id="filter-status" class="form-select">
+                    <option value="">Todos os Estados</option>
+                    <option value="pendente">Pendente</option>
+                    <option value="validado">Validado</option>
+                    <option value="rejeitado">Rejeitado</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small fw-bold">Indicadores de Vulnerabilidade</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="filter-elderly">
+                    <label class="form-check-label" for="filter-elderly">👵 Com idosos (&gt;65)</label>
                 </div>
-                <p class="pc-text-muted small mb-4">Refine a extração de dados conforme as matrizes operacionais no terreno.</p>
-                
-                <form id="filterForm">
-                    <div class="mb-3">
-                        <label class="form-label pc-text small fw-bold" for="materialFilter">Material Estrutural</label>
-                        <select class="form-select pc-input" name="material" id="materialFilter">
-                            <option value="">Todos os Materiais</option>
-                            <option value="betão">Betão</option>
-                            <option value="madeira">Madeira</option>
-                            <option value="alvenaria">Alvenaria</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label pc-text small fw-bold" for="statusFilter">Estado de Validação</label>
-                        <select class="form-select pc-input" name="status" id="statusFilter">
-                            <option value="">Todos os Estados</option>
-                            <option value="pendente">Pendente</option>
-                            <option value="validado">Validado</option>
-                            <option value="rejeitado">Rejeitado</option>
-                        </select>
-                    </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="filter-children">
+                    <label class="form-check-label" for="filter-children">👶 Com crianças (&lt;12)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="filter-mobility">
+                    <label class="form-check-label" for="filter-mobility">♿ Mobilidade Reduzida</label>
+                </div>
+            </div>
 
-                    <div class="mb-4 pc-check-tactile p-3 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid var(--pc-border-color, rgba(255,255,255,0.05));">
-                        <span class="form-label pc-text d-block small fw-bold mb-2">Indicadores de Vulnerabilidade</span>
-                        <div class="form-check form-check-lg mb-2">
-                            <input type="checkbox" class="form-check-input" name="has_elderly" id="elderlyFilter">
-                            <label class="form-check-label pc-text small" for="elderlyFilter">👵 Com idosos (>65 anos)</label>
-                        </div>
-                        <div class="form-check form-check-lg">
-                            <input type="checkbox" class="form-check-input" name="has_children" id="childrenFilter">
-                            <label class="form-check-label pc-text small" for="childrenFilter">👶 Com crianças (<12 anos)</label>
-                        </div>
-                    </div>
-                    
-                    <div class="row g-2">
-                        <div class="col-8">
-                            <button type="button" class="btn pc-btn-critical w-100 fw-bold text-uppercase" onclick="applyFilters()">
-                                <i class="bi bi-filter-circle-fill me-2"></i>Aplicar Matriz
-                            </button>
-                        </div>
-                        <div class="col-4">
-                            <button type="button" class="btn btn-outline-light w-100 fw-bold text-uppercase small text-white" onclick="resetFilters()">
-                                Limpar
-                            </button>
-                        </div>
-                    </div>
-                </form>
+            <div class="d-grid gap-2">
+                <button type="button" class="btn btn-sm btn-outline-light" id="btn-apply-filters">
+                    <i class="bi bi-check-circle me-1"></i>Aplicar Matriz
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-clear-filters">
+                    <i class="bi bi-x-circle me-1"></i>Limpar
+                </button>
             </div>
         </div>
-        
-        <div class="col-lg-7 d-flex flex-column gap-4">
-            <div class="pc-panel p-4 flex-grow-1" style="border: 1px solid var(--pc-border-color, rgba(255,255,255,0.1));">
-                <div class="d-flex align-items-center mb-3">
-                    <i class="bi bi-download text-success fs-4 me-2"></i>
-                    <h5 class="pc-text fw-bold mb-0">Extração de Ficheiros</h5>
-                </div>
-                <p class="pc-text-muted small mb-4">Os ficheiros gerados herdarão automaticamente os filtros definidos ao lado.</p>
-                
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <a id="csvExport" href="#" class="btn btn-outline-success w-100 py-3 fw-bold text-uppercase d-flex align-items-center justify-content-center" download>
-                            <i class="bi bi-filetype-csv fs-4 me-2"></i>Exportar Matriz CSV
-                        </a>
+    </div>
+
+    <!-- Coluna Direita: Exportação -->
+    <div class="col-lg-8">
+        <div class="pc-report-section">
+            <h5><i class="bi bi-download me-2"></i>Exportação de Ficheiros</h5>
+            <p class="pc-text-muted small mb-3">
+                Os ficheiros gerados herdarão automaticamente os filtros definidos ao lado.
+            </p>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="p-3 rounded" style="background: rgba(0,0,0,0.15); border: 1px solid var(--pc-border);">
+                        <h6 class="pc-text small fw-bold mb-2">
+                            <i class="bi bi-file-earmark-spreadsheet me-1"></i>Matriz CSV
+                        </h6>
+                        <p class="pc-text-muted small mb-3">
+                            Formato ideal para integração em sistemas SIG de Proteção Civil.
+                        </p>
+                        <button class="pc-export-btn w-100" id="btn-export-csv">
+                            <span class="spinner"></span>
+                            <span class="btn-text"><i class="bi bi-download me-1"></i>Exportar CSV</span>
+                        </button>
                     </div>
-                    <div class="col-md-6">
-                        <a id="pdfExport" href="#" class="btn btn-outline-danger w-100 py-3 fw-bold text-uppercase d-flex align-items-center justify-content-center" download>
-                            <i class="bi bi-filetype-pdf fs-4 me-2"></i>Sumário Técnico PDF
-                        </a>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="p-3 rounded" style="background: rgba(255,107,0,0.08); border: 1px solid rgba(255,107,0,0.3);">
+                        <h6 class="pc-text small fw-bold mb-2">
+                            <i class="bi bi-file-earmark-pdf me-1"></i>Sumário Executivo PDF
+                        </h6>
+                        <p class="pc-text-muted small mb-3">
+                            Dossier tático consolidado com gráficos de vulnerabilidades e rácios de risco.
+                        </p>
+                        <button class="pc-export-btn w-100" id="btn-export-pdf">
+                            <span class="spinner"></span>
+                            <span class="btn-text"><i class="bi bi-download me-1"></i>Gerar PDF</span>
+                        </button>
                     </div>
                 </div>
-                <small class="pc-text-muted d-block mt-3 text-center small">
-                    <i class="bi bi-info-circle me-1"></i> Formato ideal para auditoria externa ou integração em sistemas SIG de Proteção Civil.
-                </small>
             </div>
-            
-            <div class="pc-panel p-4" style="border: 1px solid var(--pc-border-color, rgba(255,255,255,0.1));">
-                <div class="d-flex align-items-center mb-3">
-                    <i class="bi bi-bar-chart-fill text-info fs-4 me-2"></i>
-                    <h5 class="pc-text fw-bold mb-0">Métricas Consolidadas (Segmentadas)</h5>
-                </div>
-                
-                <div id="summaryStats" class="p-3 rounded" style="background: rgba(0,0,0,0.15); border: 1px solid var(--pc-border-color, rgba(255,255,255,0.05));">
-                    <div class="text-center py-3">
-                        <span class="spinner-border spinner-border-sm pc-text-muted me-2" role="status"></span>
-                        <span class="pc-text-muted small">A consultar servidores centrais...</span>
+        </div>
+
+        <!-- Métricas ao vivo -->
+        <div class="pc-report-section">
+            <h5><i class="bi bi-bar-chart me-2"></i>Métricas Consolidadas</h5>
+            <div id="metrics-container">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-warning" role="status">
+                        <span class="visually-hidden">A carregar...</span>
                     </div>
+                    <p class="pc-text-muted small mt-2 mb-0">A consultar servidores centrais...</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_scripts %}
 <script>
-function buildQueryParams() {
-    const params = new URLSearchParams();
-    const material = document.getElementById('materialFilter').value;
-    const has_elderly = document.getElementById('elderlyFilter').checked;
-    const has_children = document.getElementById('childrenFilter').checked;
-    const status = document.getElementById('statusFilter').value;
-    
-    if (material) params.append('material', material);
-    if (has_elderly) params.append('has_elderly', 'true');
-    if (has_children) params.append('has_children', 'true');
-    if (status) params.append('status', status);
-    
-    return params.toString();
-}
+// Estado global
+let allHouseholds = [];
+let filteredHouseholds = [];
 
-function applyFilters() {
-    const queryParams = buildQueryParams();
-    
-    // Atualizar endpoints dinâmicos de exportação
-    document.getElementById('csvExport').href = `/reports/export/csv?${queryParams}`;
-    document.getElementById('pdfExport').href = `/reports/export/pdf?${queryParams}`;
-    
-    const statsContainer = document.getElementById('summaryStats');
-    
-    // Fazer chamada à API herdando os cabeçalhos centrais do base.html
-    const authHeaders = typeof window.getAuthHeaders === 'function' ? window.getAuthHeaders() : {};
-
-    fetch(`/reports/summary?${queryParams}`, { headers: authHeaders })
-        .then(res => {
-            if (!res.ok) throw new Error('Falha na resposta do servidor');
-            return res.json();
-        })
-        .then(data => {
-            statsContainer.innerHTML = `
-                <div class="row g-3 text-center">
-                    <div class="col-sm-3">
-                        <div class="p-2 rounded bg-dark border border-secondary">
-                            <small class="pc-text-muted d-block text-uppercase" style="font-size:10px;">Total Registos</small>
-                            <span class="pc-text fs-5 fw-bold">${data.total || 0}</span>
-                        </div>
-                    </div>
-                    <div class="col-sm-3">
-                        <div class="p-2 rounded bg-dark border border-secondary">
-                            <small class="pc-text-muted d-block text-uppercase" style="font-size:10px;">👵 Com Idosos</small>
-                            <span class="text-warning fs-5 Bars fw-bold">${data.vulnerability?.with_elderly || 0}</span>
-                        </div>
-                    </div>
-                    <div class="col-sm-3">
-                        <div class="p-2 rounded bg-dark border border-secondary">
-                            <small class="pc-text-muted d-block text-uppercase" style="font-size:10px;">👶 Com Crianças</small>
-                            <span class="text-info fs-5 fw-bold">${data.vulnerability?.with_children || 0}</span>
-                        </div>
-                    </div>
-                    <div class="col-sm-3">
-                        <div class="p-2 rounded bg-dark border border-secondary">
-                            <small class="pc-text-muted d-block text-uppercase" style="font-size:10px;">🛡️ Validados</small>
-                            <span class="text-success fs-5 fw-bold">${data.by_status?.validado || 0}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        })
-        .catch(err => {
-            console.error('Erro ao carregar resumo estatístico:', err);
-            statsContainer.innerHTML = `
-                <div class="text-danger small text-center fw-bold py-2">
-                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Erro de comunicação com o servidor de dados.
-                </div>
-            `;
+// Carregar dados
+async function loadHouseholds() {
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            window.location.href = '/login';
+            return;
+        }
+        const response = await fetch('/households/', {
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
         });
+        if (!response.ok) throw new Error('Erro ao carregar');
+        allHouseholds = await response.json();
+        applyFilters();
+    } catch (err) {
+        console.error('Erro:', err);
+        document.getElementById('metrics-container').innerHTML = 
+            '<div class="text-center py-4"><i class="bi bi-exclamation-triangle d-block mb-2" style="font-size:2rem;color:#DC3545;"></i><p class="pc-text-muted small mb-0">Erro ao carregar dados. Verifique a sessão.</p></div>';
+    }
 }
 
-function resetFilters() {
-    document.getElementById('filterForm').reset();
+// Aplicar filtros
+function applyFilters() {
+    const material = document.getElementById('filter-material').value;
+    const status = document.getElementById('filter-status').value;
+    const elderly = document.getElementById('filter-elderly').checked;
+    const children = document.getElementById('filter-children').checked;
+    const mobility = document.getElementById('filter-mobility').checked;
+    
+    filteredHouseholds = allHouseholds.filter(h => {
+        if (material && h.material !== material) return false;
+        if (status && h.status !== status) return false;
+        if (elderly && !h.has_elderly) return false;
+        if (children && !h.has_children) return false;
+        if (mobility && !h.has_mobility_issues) return false;
+        return true;
+    });
+    renderMetrics();
+}
+
+// Renderizar métricas
+function renderMetrics() {
+    const total = filteredHouseholds.length;
+    const pendentes = filteredHouseholds.filter(h => h.status === 'pendente').length;
+    const validados = filteredHouseholds.filter(h => h.status === 'validado').length;
+    const rejeitados = filteredHouseholds.filter(h => h.status === 'rejeitado').length;
+    const idosos = filteredHouseholds.filter(h => h.has_elderly).length;
+    const criancas = filteredHouseholds.filter(h => h.has_children).length;
+    const mobilidade = filteredHouseholds.filter(h => h.has_mobility_issues).length;
+    const betao = filteredHouseholds.filter(h => h.material === 'betão').length;
+    const alvenaria = filteredHouseholds.filter(h => h.material === 'alvenaria').length;
+    const madeira = filteredHouseholds.filter(h => h.material === 'madeira').length;
+
+    const pct = (n) => total > 0 ? Math.round((n / total) * 100) : 0;
+
+    document.getElementById('metrics-container').innerHTML = `
+        <div class="row g-3 mb-4">
+            <div class="col-md-3"><div class="pc-metric-card"><div class="value">${total}</div><div class="label">Total Agregados</div></div></div>
+            <div class="col-md-3"><div class="pc-metric-card"><div class="value" style="color:#FFC107;">${pct(validados)}%</div><div class="label">Validados</div></div></div>
+            <div class="col-md-3"><div class="pc-metric-card"><div class="value" style="color:#DC3545;">${pct(pendentes)}%</div><div class="label">Pendentes</div></div></div>
+            <div class="col-md-3"><div class="pc-metric-card"><div class="value" style="color:#6C757D;">${pct(rejeitados)}%</div><div class="label">Rejeitados</div></div></div>
+        </div>
+        <h6 class="pc-text small fw-bold mb-2">Vulnerabilidades</h6>
+        <div class="pc-chart-row"><div class="row-label">👵 Idosos</div><div class="bar-container"><div class="pc-chart-bar" style="width:${pct(idosos)}%;background:#FFC107;"><span class="bar-label">${idosos}</span></div></div><div class="bar-value">${pct(idosos)}%</div></div>
+        <div class="pc-chart-row"><div class="row-label">👶 Crianças</div><div class="bar-container"><div class="pc-chart-bar" style="width:${pct(criancas)}%;background:#0D6EFD;"><span class="bar-label">${criancas}</span></div></div><div class="bar-value">${pct(criancas)}%</div></div>
+        <div class="pc-chart-row"><div class="row-label">♿ Mobilidade</div><div class="bar-container"><div class="pc-chart-bar" style="width:${pct(mobilidade)}%;background:#6F42C1;"><span class="bar-label">${mobilidade}</span></div></div><div class="bar-value">${pct(mobilidade)}%</div></div>
+        <h6 class="pc-text small fw-bold mb-2 mt-4">Materiais Estruturais</h6>
+        <div class="pc-chart-row"><div class="row-label">Betão</div><div class="bar-container"><div class="pc-chart-bar" style="width:${pct(betao)}%;background:#3b82f6;"><span class="bar-label">${betao}</span></div></div><div class="bar-value">${pct(betao)}%</div></div>
+        <div class="pc-chart-row"><div class="row-label">Alvenaria</div><div class="bar-container"><div class="pc-chart-bar" style="width:${pct(alvenaria)}%;background:#eab308;"><span class="bar-label">${alvenaria}</span></div></div><div class="bar-value">${pct(alvenaria)}%</div></div>
+        <div class="pc-chart-row"><div class="row-label">Madeira</div><div class="bar-container"><div class="pc-chart-bar" style="width:${pct(madeira)}%;background:#ef4444;"><span class="bar-label">${madeira}</span></div></div><div class="bar-value">${pct(madeira)}%</div></div>
+    `;
+}
+
+// Exportar CSV
+document.getElementById('btn-export-csv').addEventListener('click', function() {
+    const btn = this;
+    btn.classList.add('loading');
+    setTimeout(() => {
+        const headers = ['ID','Nome','Material','Ocupantes','Pisos','Estado','Idosos','Crianças','Mobilidade','Latitude','Longitude'];
+        const rows = filteredHouseholds.map(h => [
+            h.id, h.name, h.material, h.num_people, h.num_floors, h.status,
+            h.has_elderly ? 'Sim' : 'Não', h.has_children ? 'Sim' : 'Não',
+            h.has_mobility_issues ? 'Sim' : 'Não', h.latitude, h.longitude
+        ]);
+        const csv = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `sig-aldeias-relatorio-${Date.now()}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        btn.classList.remove('loading');
+    }, 500);
+});
+
+// Exportar PDF - Sumário Executivo
+document.getElementById('btn-export-pdf').addEventListener('click', async function() {
+    const btn = this;
+    btn.classList.add('loading');
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 15;
+
+        // Cores
+        const COLOR_ACCENT = [255, 107, 0];
+        const COLOR_DARK = [18, 24, 36];
+        const COLOR_TEXT = [30, 30, 30];
+        const COLOR_MUTED = [100, 100, 100];
+        const COLOR_RED = [220, 53, 69];
+        const COLOR_GREEN = [40, 167, 69];
+        const COLOR_YELLOW = [255, 193, 7];
+        const COLOR_BLUE = [13, 110, 253];
+
+        // Dados
+        const total = filteredHouseholds.length;
+        const pendentes = filteredHouseholds.filter(h => h.status === 'pendente').length;
+        const validados = filteredHouseholds.filter(h => h.status === 'validado').length;
+        const rejeitados = filteredHouseholds.filter(h => h.status === 'rejeitado').length;
+        const idosos = filteredHouseholds.filter(h => h.has_elderly).length;
+        const criancas = filteredHouseholds.filter(h => h.has_children).length;
+        const mobilidade = filteredHouseholds.filter(h => h.has_mobility_issues).length;
+        const betao = filteredHouseholds.filter(h => h.material === 'betão').length;
+        const alvenaria = filteredHouseholds.filter(h => h.material === 'alvenaria').length;
+        const madeira = filteredHouseholds.filter(h => h.material === 'madeira').length;
+        const vulneraveis = filteredHouseholds.filter(h => h.has_elderly || h.has_children || h.has_mobility_issues).length;
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('pt-PT') + ' ' + now.toLocaleTimeString('pt-PT', {hour:'2-digit', minute:'2-digit'});
+
+        // ============ PÁGINA 1: CAPA ============
+        // Fundo escuro no topo
+        doc.setFillColor(...COLOR_DARK);
+        doc.rect(0, 0, pageWidth, 70, 'F');
+
+        // Logo/Título
+        doc.setTextColor(...COLOR_ACCENT);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(28);
+        doc.text('SIG-Aldeias', margin, 30);
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(11);
+        doc.text('Sistema de Informação Geográfica para Proteção Civil', margin, 40);
+
+        doc.setTextColor(200, 200, 200);
+        doc.setFontSize(9);
+        doc.text('Relatório Operacional de Proteção Civil', margin, 50);
+
+        // Linha separadora
+        doc.setDrawColor(...COLOR_ACCENT);
+        doc.setLineWidth(1);
+        doc.line(margin, 75, pageWidth - margin, 75);
+
+        // Título do relatório
+        doc.setTextColor(...COLOR_TEXT);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(20);
+        doc.text('Sumário Executivo', margin, 95);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(11);
+        doc.setTextColor(...COLOR_MUTED);
+        doc.text('Dossier Tático Consolidado', margin, 105);
+        doc.text('Vulnerabilidades e Rácios de Risco', margin, 112);
+
+        // Info box
+        doc.setFillColor(245, 245, 245);
+        doc.roundedRect(margin, 125, pageWidth - 2*margin, 50, 3, 3, 'F');
+        
+        doc.setTextColor(...COLOR_TEXT);
+        doc.setFontSize(10);
+        doc.text('Data de Emissão:', margin + 5, 138);
+        doc.setTextColor(...COLOR_MUTED);
+        doc.text(dateStr, margin + 45, 138);
+
+        doc.setTextColor(...COLOR_TEXT);
+        doc.text('Total de Agregados:', margin + 5, 150);
+        doc.setTextColor(...COLOR_ACCENT);
+        doc.setFont('helvetica', 'bold');
+        doc.text(total.toString(), margin + 45, 150);
+
+        doc.setTextColor(...COLOR_TEXT);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Filtros Aplicados:', margin + 5, 162);
+        const filtros = [];
+        if (document.getElementById('filter-material').value) filtros.push('Material: ' + document.getElementById('filter-material').value);
+        if (document.getElementById('filter-status').value) filtros.push('Estado: ' + document.getElementById('filter-status').value);
+        if (document.getElementById('filter-elderly').checked) filtros.push('Idosos');
+        if (document.getElementById('filter-children').checked) filtros.push('Crianças');
+        doc.setTextColor(...COLOR_MUTED);
+        doc.text(filtros.length > 0 ? filtros.join(' | ') : 'Nenhum (todos os registos)', margin + 45, 162);
+
+        // Rodapé capa
+        doc.setTextColor(...COLOR_MUTED);
+        doc.setFontSize(8);
+        doc.text('Documento classificado — Uso interno Proteção Civil', pageWidth/2, pageHeight - 15, {align: 'center'});
+        doc.text('Gerado automaticamente por SIG-Aldeias v2.0', pageWidth/2, pageHeight - 10, {align: 'center'});
+
+        // ============ PÁGINA 2: MÉTRICAS GERAIS ============
+        doc.addPage();
+        
+        // Header
+        doc.setFillColor(...COLOR_DARK);
+        doc.rect(0, 0, pageWidth, 20, 'F');
+        doc.setTextColor(...COLOR_ACCENT);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.text('SIG-Aldeias', margin, 13);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text('Sumário Executivo', pageWidth - margin, 13, {align: 'right'});
+
+        doc.setTextColor(...COLOR_TEXT);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.text('1. Indicadores Globais', margin, 35);
+
+        // Cards de métricas
+        const cards = [
+            { label: 'Total Agregados', value: total, color: COLOR_ACCENT },
+            { label: 'Validados', value: validados, color: COLOR_GREEN },
+            { label: 'Pendentes', value: pendentes, color: COLOR_YELLOW },
+            { label: 'Rejeitados', value: rejeitados, color: COLOR_RED }
+        ];
+
+        const cardW = (pageWidth - 2*margin - 15) / 4;
+        cards.forEach((card, i) => {
+            const x = margin + i * (cardW + 5);
+            const y = 45;
+            doc.setFillColor(card.color[0], card.color[1], card.color[2]);
+            doc.roundedRect(x, y, cardW, 30, 2, 2, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(20);
+            doc.text(card.value.toString(), x + cardW/2, y + 15, {align: 'center'});
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.text(card.label, x + cardW/2, y + 24, {align: 'center'});
+        });
+
+        // Rácio de risco
+        doc.setTextColor(...COLOR_TEXT);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.text('2. Rácio de Risco', margin, 95);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(...COLOR_MUTED);
+        doc.text('Distribuição percentual do estado de validação dos agregados', margin, 103);
+
+        // Barras de rácio
+        const barY = 115;
+        const barH = 12;
+        const barMaxW = pageWidth - 2*margin;
+
+        const racioData = [
+            { label: 'Validados', value: validados, total: total, color: COLOR_GREEN },
+            { label: 'Pendentes', value: pendentes, total: total, color: COLOR_YELLOW },
+            { label: 'Rejeitados', value: rejeitados, total: total, color: COLOR_RED }
+        ];
+
+        racioData.forEach((item, i) => {
+            const y = barY + i * 20;
+            const pct = total > 0 ? (item.value / total) * 100 : 0;
+            const barW = (pct / 100) * barMaxW;
+
+            doc.setFillColor(240, 240, 240);
+            doc.rect(margin, y, barMaxW, barH, 'F');
+            
+            if (barW > 0) {
+                doc.setFillColor(...item.color);
+                doc.rect(margin, y, barW, barH, 'F');
+            }
+
+            doc.setTextColor(...COLOR_TEXT);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.text(item.label, margin + 2, y + 8);
+            doc.text(`${item.value} (${pct.toFixed(1)}%)`, margin + barMaxW - 2, y + 8, {align: 'right'});
+        });
+
+        // ============ PÁGINA 3: VULNERABILIDADES ============
+        doc.addPage();
+        
+        doc.setFillColor(...COLOR_DARK);
+        doc.rect(0, 0, pageWidth, 20, 'F');
+        doc.setTextColor(...COLOR_ACCENT);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.text('SIG-Aldeias', margin, 13);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text('Sumário Executivo', pageWidth - margin, 13, {align: 'right'});
+
+        doc.setTextColor(...COLOR_TEXT);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.text('3. Análise de Vulnerabilidades', margin, 35);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(...COLOR_MUTED);
+        doc.text('Agregados com populações vulneráveis identificadas', margin, 43);
+
+        // Gráfico de vulnerabilidades
+        const vulnData = [
+            { label: 'Idosos (>65)', value: idosos, icon: '👵', color: COLOR_YELLOW },
+            { label: 'Crianças (<12)', value: criancas, icon: '👶', color: COLOR_BLUE },
+            { label: 'Mobilidade Reduzida', value: mobilidade, icon: '♿', color: [111, 66, 193] }
+        ];
+
+        vulnData.forEach((item, i) => {
+            const y = 55 + i * 25;
+            const pct = total > 0 ? (item.value / total) * 100 : 0;
+            const barW = (pct / 100) * (pageWidth - 2*margin - 40);
+
+            doc.setTextColor(...COLOR_TEXT);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10);
+            doc.text(item.label, margin, y + 6);
+
+            doc.setFillColor(240, 240, 240);
+            doc.rect(margin + 50, y, pageWidth - 2*margin - 80, 10, 'F');
+            
+            if (barW > 0) {
+                doc.setFillColor(...item.color);
+                doc.rect(margin + 50, y, barW, 10, 'F');
+            }
+
+            doc.setTextColor(...COLOR_TEXT);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10);
+            doc.text(`${item.value} (${pct.toFixed(1)}%)`, pageWidth - margin - 30, y + 7);
+        });
+
+        // Total vulneráveis
+        doc.setFillColor(255, 243, 205);
+        doc.roundedRect(margin, 145, pageWidth - 2*margin, 25, 3, 3, 'F');
+        doc.setTextColor(133, 100, 4);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.text(`⚠ Total de agregados vulneráveis: ${vulneraveis} de ${total} (${total > 0 ? ((vulneraveis/total)*100).toFixed(1) : 0}%)`, margin + 5, 160);
+
+        // Materiais
+        doc.setTextColor(...COLOR_TEXT);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.text('4. Materiais Estruturais', margin, 195);
+
+        const matData = [
+            { label: 'Betão', value: betao, color: [59, 130, 246] },
+            { label: 'Alvenaria', value: alvenaria, color: [234, 179, 8] },
+            { label: 'Madeira', value: madeira, color: [239, 68, 68] }
+        ];
+
+        matData.forEach((item, i) => {
+            const y = 205 + i * 18;
+            const pct = total > 0 ? (item.value / total) * 100 : 0;
+            const barW = (pct / 100) * (pageWidth - 2*margin - 40);
+
+            doc.setFillColor(...item.color);
+            doc.rect(margin, y, 8, 8, 'F');
+            doc.setTextColor(...COLOR_TEXT);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10);
+            doc.text(item.label, margin + 12, y + 6);
+            doc.text(`${item.value} (${pct.toFixed(1)}%)`, pageWidth - margin - 30, y + 6, {align: 'right'});
+        });
+
+        // ============ PÁGINA 4: CONCLUSÕES ============
+        doc.addPage();
+        
+        doc.setFillColor(...COLOR_DARK);
+        doc.rect(0, 0, pageWidth, 20, 'F');
+        doc.setTextColor(...COLOR_ACCENT);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.text('SIG-Aldeias', margin, 13);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text('Sumário Executivo', pageWidth - margin, 13, {align: 'right'});
+
+        doc.setTextColor(...COLOR_TEXT);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.text('5. Conclusões e Recomendações', margin, 35);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(...COLOR_TEXT);
+
+        const conclusoes = [
+            `Dos ${total} agregados analisados, ${validados} (${total > 0 ? ((validados/total)*100).toFixed(1) : 0}%) encontram-se validados e seguros.`,
+            `${pendentes} agregados (${total > 0 ? ((pendentes/total)*100).toFixed(1) : 0}%) permanecem pendentes de validação técnica, requerendo atenção prioritária.`,
+            `${vulneraveis} agregados (${total > 0 ? ((vulneraveis/total)*100).toFixed(1) : 0}%) apresentam populações vulneráveis (idosos, crianças ou mobilidade reduzida).`,
+            `Recomenda-se a priorização da validação dos agregados pendentes com vulnerabilidades identificadas.`,
+            `A cobertura de validação atual é de ${total > 0 ? ((validados/total)*100).toFixed(1) : 0}%, ${total > 0 && (validados/total)*100 < 70 ? 'ABAIXO do limiar recomendado de 70%.' : 'dentro dos parâmetros aceitáveis.'}`
+        ];
+
+        conclusoes.forEach((text, i) => {
+            const y = 50 + i * 18;
+            doc.setFillColor(...COLOR_ACCENT);
+            doc.circle(margin + 3, y - 2, 1.5, 'F');
+            doc.text(text, margin + 8, y, {maxWidth: pageWidth - 2*margin - 16});
+        });
+
+        // Assinatura
+        doc.setDrawColor(200, 200, 200);
+        doc.line(margin, 230, margin + 60, 230);
+        doc.setTextColor(...COLOR_MUTED);
+        doc.setFontSize(8);
+        doc.text('Assinatura do Responsável', margin, 235);
+        doc.text('Data: ___/___/_______', margin + 70, 235);
+
+        // Rodapé final
+        doc.setTextColor(...COLOR_MUTED);
+        doc.setFontSize(8);
+        doc.text('Documento classificado — Uso interno Proteção Civil', pageWidth/2, pageHeight - 15, {align: 'center'});
+        doc.text(`Gerado em ${dateStr} | SIG-Aldeias v2.0`, pageWidth/2, pageHeight - 10, {align: 'center'});
+
+        // Guardar
+        doc.save(`sig-aldeias-sumario-executivo-${Date.now()}.pdf`);
+
+    } catch (err) {
+        console.error('Erro ao gerar PDF:', err);
+        alert('Erro ao gerar PDF: ' + err.message);
+    } finally {
+        btn.classList.remove('loading');
+    }
+});
+
+// Event listeners filtros
+document.getElementById('btn-clear-filters').addEventListener('click', () => {
+    document.getElementById('filter-material').value = '';
+    document.getElementById('filter-status').value = '';
+    document.getElementById('filter-elderly').checked = false;
+    document.getElementById('filter-children').checked = false;
+    document.getElementById('filter-mobility').checked = false;
     applyFilters();
-}
+});
 
-// Execução imediata na carga da DOM
-document.addEventListener('DOMContentLoaded', applyFilters);
+// Inicializar
+document.addEventListener('DOMContentLoaded', loadHouseholds);
 </script>
 {% endblock %}
