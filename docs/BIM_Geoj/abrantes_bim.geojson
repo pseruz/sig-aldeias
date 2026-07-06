@@ -1,0 +1,313 @@
+{
+  "type": "FeatureCollection",
+  "name": "Abrantes_BIM_Import",
+  "description": "Dados BIM da zona de Abrantes - Estádio, Hospital e Infraestruturas de Segurança",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Estádio Municipal de Abrantes",
+        "layer_type": "public_building",
+        "description": "Estádio municipal com 3 pisos, capacidade 8000 espetadores. Infraestrutura crítica para eventos de massa.",
+        "floors": 3,
+        "capacity": 8000,
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-8.1950, 39.4745],
+          [-8.1920, 39.4745],
+          [-8.1920, 39.4760],
+          [-8.1950, 39.4760],
+          [-8.1950, 39.4745]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hospital de Abrantes",
+        "layer_type": "public_building",
+        "description": "Hospital distrital com urgência 24h, 5 pisos, heliporto no topo. Infraestrutura crítica de saúde.",
+        "floors": 5,
+        "capacity": 500,
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-8.2060, 39.4675],
+          [-8.2030, 39.4675],
+          [-8.2030, 39.4690],
+          [-8.2060, 39.4690],
+          [-8.2060, 39.4675]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Saída Emergência Estádio - Norte",
+        "layer_type": "public_building",
+        "description": "Saída de emergência principal - Porta N1 (capacidade 500 pessoas/min)",
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.1935, 39.4760]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Saída Emergência Estádio - Sul",
+        "layer_type": "public_building",
+        "description": "Saída de emergência - Porta S1 (capacidade 500 pessoas/min)",
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.1935, 39.4745]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Saída Emergência Estádio - Este",
+        "layer_type": "public_building",
+        "description": "Saída de emergência - Porta E1 (capacidade 300 pessoas/min)",
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.1920, 39.4752]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Saída Emergência Estádio - Oeste",
+        "layer_type": "public_building",
+        "description": "Saída de emergência - Porta O1 (capacidade 300 pessoas/min)",
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.1950, 39.4752]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Saída Emergência Hospital - Urgência",
+        "layer_type": "public_building",
+        "description": "Saída de emergência da Urgência 24h (acesso ambulâncias)",
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.2045, 39.4682]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Saída Emergência Hospital - Bloco A",
+        "layer_type": "public_building",
+        "description": "Saída de emergência Bloco A - Consultas Externas",
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.2055, 39.4688]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Saída Emergência Hospital - Bloco B",
+        "layer_type": "public_building",
+        "description": "Saída de emergência Bloco B - Internamento",
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.2035, 39.4688]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Saída Emergência Hospital - Heliporto",
+        "layer_type": "public_building",
+        "description": "Acesso ao heliporto (piso 5) - evacuação aérea",
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.2045, 39.4683]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Saída Emergência Hospital - Morgue",
+        "layer_type": "public_building",
+        "description": "Saída de serviço - Acesso restrito",
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.2058, 39.4678]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Saída Emergência Hospital - Cozinha",
+        "layer_type": "public_building",
+        "description": "Saída de serviço - Cozinha e lavandaria",
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.2032, 39.4678]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Boca Incêndio Estádio - Entrada Principal",
+        "layer_type": "hydrant",
+        "description": "Hidrante DN100 - Pressão 6 bar",
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.1940, 39.4748]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Boca Incêndio Estádio - Parque Estacionamento",
+        "layer_type": "hydrant",
+        "description": "Hidrante DN100 - Acesso viaturas bombeiros",
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.1925, 39.4755]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Boca Incêndio Hospital - Urgência",
+        "layer_type": "hydrant",
+        "description": "Hidrante DN100 - Zona crítica",
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.2048, 39.4680]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Boca Incêndio Hospital - Estacionamento",
+        "layer_type": "hydrant",
+        "description": "Hidrante DN100 - Acesso norte",
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.2040, 39.4692]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Boca Incêndio Hospital - Bloco Técnico",
+        "layer_type": "hydrant",
+        "description": "Hidrante DN100 - Zona de geradores",
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.2058, 39.4685]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Boca Incêndio Rua do Estádio",
+        "layer_type": "hydrant",
+        "description": "Hidrante DN80 - Via pública",
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.1935, 39.4770]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ponto Encontro Estádio - Campo Relvado",
+        "layer_type": "meeting_point",
+        "description": "Zona de refúgio principal - Capacidade 2000 pessoas",
+        "capacity": 2000,
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.1900, 39.4755]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ponto Encontro Estádio - Parque Norte",
+        "layer_type": "meeting_point",
+        "description": "Zona de refúgio secundária - Capacidade 1000 pessoas",
+        "capacity": 1000,
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.1930, 39.4775]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ponto Encontro Hospital - Jardim Interior",
+        "layer_type": "meeting_point",
+        "description": "Zona de refúgio para doentes e funcionários - Capacidade 300 pessoas",
+        "capacity": 300,
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.2020, 39.4685]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ponto Encontro Hospital - Praça Exterior",
+        "layer_type": "meeting_point",
+        "description": "Zona de refúgio principal - Acesso ambulâncias - Capacidade 500 pessoas",
+        "capacity": 500,
+        "status": "ACTIVE"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-8.2045, 39.4700]
+      }
+    }
+  ]
+}
